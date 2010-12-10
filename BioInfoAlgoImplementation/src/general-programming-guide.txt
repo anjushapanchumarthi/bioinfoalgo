@@ -1,0 +1,52 @@
+
+=====================
+ Programming Guide :
+=====================
+
+===========
+ general:
+===========
+
+(1) at least Java SDK 1.5 is needed
+(2) use whatever IDE you want (I like Eclipse, everything already there..)
+
+
+===========
+ coding:
+===========
+
+(1) one BioinfAlgorithm sub class per algorithm to implement
+(2) additional classes and thus class files are possible and usually needed,
+    think about reusable code and sub problems that can be extracted into 
+    reusable classes
+(3) create full JavaDoc documentation comment blocks for all classes and members
+(4) verbose source code commenting for readable source code and good maintenance
+(5) use self-explanatory member names, something like "x","grmpf",.. might be
+    short and easy but reduce readablility of the source code
+(6) make use of indention to separate code blocks etc.
+(7) use YOUR OWN package name (subdir) for your algorithms to cluster your 
+    source files!
+    e.g. "timtam" could be the package name for participant Tim Taler such that 
+    all his class files are in the "timtam" sub folder and accessible via 
+    "timtam.AlgorithmClass1", ...  
+
+
+===========
+ source:
+===========
+
+(1) have a look at the ExampleAlgorithm
+(2) create your own package sub directory in your source folder
+(3) create a sub class of BioinfAlgorithm and implement the abstract methods
+    according to their JavaDoc description and the ExampleAlgorithm template
+
+(4) to test your implementation: copy, adapt, and use the 2 line main function
+    from ExampleAlgorithm and set appropriate default values for your 
+    parameters.
+    afterwards you can compile and run your class
+
+
+
+================================================================================
+ For further questions contact me : http://www.bioinf.uni-freiburg.de/~mmann/
+=============================================================================EOF
