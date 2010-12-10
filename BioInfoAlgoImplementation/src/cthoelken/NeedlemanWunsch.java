@@ -19,7 +19,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 	 /**
 	  * Constructs an example algorithm and initializes all allowed parameters.
 	  */
-	public NeedlemanWunsch() {
+	public NeedlemanWunsch() { 
 		
 		// create one example parameter for each type of parameter allowed
 		
