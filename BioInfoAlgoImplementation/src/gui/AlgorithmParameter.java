@@ -29,6 +29,7 @@ public class AlgorithmParameter {
 	 * The class of the Parameter. (Currently all Number derived classes 
 	 * and String supported.)
 	 */
+	@SuppressWarnings("rawtypes")
 	public Class type = Object.class;
 	
 	/**
@@ -49,6 +50,7 @@ public class AlgorithmParameter {
 	 * @param descr_	a detailed parameter description
 	 * @param type_		the type of the parameter (String or Number derived classes)
 	 */
+	@SuppressWarnings("rawtypes")
 	public AlgorithmParameter(String name_, String descr_, Class type_) {
 		name = name_;
 		description = descr_;
@@ -63,6 +65,7 @@ public class AlgorithmParameter {
 	 * @param type_		the type of the parameter (String or Number derived classes)
 	 * @param defaultData the default value of the parameter
 	 */
+	@SuppressWarnings("rawtypes")
 	public AlgorithmParameter(String name_, String descr_, Class type_, Object defaultData) {
 		this(name_, descr_, type_);
 			// check if the default value can be casted
