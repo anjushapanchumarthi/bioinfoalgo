@@ -127,7 +127,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 			e.printStackTrace();
 		}
 		for(int k=0; k<algnmts.size(); k++) 
-			retVal += algnmts.get(k).toString();
+			retVal += "\n########### Alignment "+k+":\n"+algnmts.get(k).toString();
 		  // returning the algorithm results ...
 		return retVal;
 	}
@@ -150,22 +150,28 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 			char[] column = new char[algn.sequences.length];
 			ThreadGroup tg = new ThreadGroup(algn.toString());
 			while(!deadEnd) {
+				deadEnd = true;
+				if(x < 0 || y < 0) break;
 				if(x == 0 && y == 0) {
 					algnmts.add(algn);
-					deadEnd = true; break;
+					break;
 				}
-				System.out.println("Ich renn! "+algn.toString());
+				//System.out.println("Ich renn! "+algn.toString());
 				if(M.get(x, y) == M.get(x-1, y) + omega.getScore(seq1.charAt(x), '_')) {
 					column[0] = seq1.charAt(x); column[1] = '_';
 					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column), x-1, y)).start();	
 				}
 				if(M.get(x, y) == M.get(x, y-1) + omega.getScore('_', seq2.charAt(y))) {
-					column[1] = seq1.charAt(y); column[0] = '_';
+					column[1] = seq2.charAt(y); column[0] = '_';
 					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column), x, y-1)).start();	
 				}
 
-				if(M.get(x, y) != M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y)))
-					deadEnd = true;
+				if(M.get(x, y) == M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y))) {
+					deadEnd = false;
+					column[1] = seq2.charAt(y); column[0] = seq1.charAt(x);
+					algn.addFirst(column);
+					x--; y--;
+				}
 			}
 			Thread[] threads = new Thread[tg.activeCount()];
 			tg.enumerate(threads);

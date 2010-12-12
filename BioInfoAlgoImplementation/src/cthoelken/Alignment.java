@@ -4,7 +4,6 @@
 package cthoelken;
 
 import java.security.InvalidParameterException;
-import java.util.Arrays;
 
 /**
  * @author n2
@@ -16,9 +15,12 @@ public class Alignment {
 	
 	Alignment(int seqCount) {
 		sequences = new String[seqCount];
+		for(int i=0; i<seqCount; i++)
+			sequences[i] = "";
 	}
 	
 	Alignment(Alignment algn) {
+		sequences = new String[algn.sequences.length];
 		for(int i=0; i<algn.sequences.length; i++)
 			this.sequences[i] = new String(algn.sequences[i]);
 	}
