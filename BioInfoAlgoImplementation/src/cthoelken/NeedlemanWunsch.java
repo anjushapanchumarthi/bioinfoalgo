@@ -118,8 +118,14 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		
 		System.out.println(M.toString());
 		
-		new Thread(new Backtracer(new Alignment(2), seq1.length()-1, seq2.length()-1)).start();
-		
+		Thread bt = new Thread(new Backtracer(new Alignment(2), seq1.length()-1, seq2.length()-1));
+		bt.start();
+		try {
+			bt.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		for(int k=0; k<algnmts.size(); k++) 
 			retVal += algnmts.get(k).toString();
 		  // returning the algorithm results ...
@@ -142,6 +148,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 			boolean deadEnd = false;
 			System.out.println("Bin frisch geschlüpft: "+algn.toString());
 			char[] column = new char[algn.sequences.length];
+			ThreadGroup tg = new ThreadGroup(algn.toString());
 			while(!deadEnd) {
 				if(x == 0 && y == 0) {
 					algnmts.add(algn);
@@ -150,16 +157,25 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				System.out.println("Ich renn! "+algn.toString());
 				if(M.get(x, y) == M.get(x-1, y) + omega.getScore(seq1.charAt(x), '_')) {
 					column[0] = seq1.charAt(x); column[1] = '_';
-					new Thread(new Backtracer(new Alignment(algn).addFirst(column), x-1, y)).start();	
+					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column), x-1, y)).start();	
 				}
 				if(M.get(x, y) == M.get(x, y-1) + omega.getScore('_', seq2.charAt(y))) {
 					column[1] = seq1.charAt(y); column[0] = '_';
-					new Thread(new Backtracer(new Alignment(algn).addFirst(column), x, y-1)).start();	
+					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column), x, y-1)).start();	
 				}
 
 				if(M.get(x, y) != M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y)))
 					deadEnd = true;
 			}
+			Thread[] threads = new Thread[tg.activeCount()];
+			tg.enumerate(threads);
+			for(int i=0; i<tg.activeCount(); i++)
+				try {
+					threads[i].join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			
 		}
 		
