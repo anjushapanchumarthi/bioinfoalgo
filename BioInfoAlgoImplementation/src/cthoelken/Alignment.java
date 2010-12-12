@@ -6,7 +6,7 @@ package cthoelken;
 import java.security.InvalidParameterException;
 
 /**
- * @author n2
+ * @author n2 
  *
  */
 public class Alignment {
