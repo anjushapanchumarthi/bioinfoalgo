@@ -1,13 +1,10 @@
-/**
- * 
- */
 package cthoelken;
 
 import java.security.InvalidParameterException;
 import java.util.Arrays;
 
 /**
- * @author n2
+ * @author Clemens Thoelken
  *
  */
 public class CostMatrix {
@@ -17,10 +14,22 @@ public class CostMatrix {
 	@SuppressWarnings("unused")
 	private SubstitutionMatrix match;
 
+	/**
+	 * Constructor
+	 * @param xLength Length of sequence 1
+	 * @param yLength Length of sequence 2
+	 */
 	CostMatrix(int xLength, int yLength) {
 		this(xLength, yLength, new SubstitutionMatrix(true));
 	}
 	
+	/**
+	 * Constructor for automatic computation
+	 * @param xLength
+	 * @param yLength
+	 * @param sub A given SubstitutionMatrix to compute values by itself
+	 */
+	//@Deprecated
 	CostMatrix(int xLength, int yLength, SubstitutionMatrix sub) {
 		if(xLength < 1 || yLength < 1) 
 			throw new InvalidParameterException("Sequence length not feasable!");
@@ -29,18 +38,33 @@ public class CostMatrix {
 		match = sub;
 	}
 	
+	/**
+	 * Get the costs at the point x, y
+	 * @param x Position in sequence 1
+	 * @param y Position in sequence 2
+	 * @return Costs
+	 */
 	public int get(int x, int y) {
 		if(x < 0 || y < 0 || x >= m.length || y >= m[0].length) 
 			return -Integer.MIN_VALUE+1000;
 		return m[x][y];
 	}
 	
+	/**
+	 * Updates the costs at the point x, y
+	 * @param x Position in sequence 1
+	 * @param y Position in sequence 2
+	 * @param value Value that should be inserted
+	 */
 	public void set(int x, int y, int value) {
 		if(x < 0 || y < 0 || x >= m.length || y >= m[0].length)
 			throw new InvalidParameterException("Index not feasable!");
 		m[x][y] = value;
 	}
 	
+	/**
+	 * Pretty prints the cost matrix
+	 */
 	public String toString() {
 		String retVal = "";
 		for(int i=0; i<m.length; i++)

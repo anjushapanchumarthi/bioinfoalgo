@@ -1,10 +1,8 @@
-/**
- * 
- */
 package cthoelken;
 
 /**
- * @author n2
+ * Substitution Matrix based on PAM250 or BLOSUM62 scores
+ * @author Clemens Thoelken
  *
  */
 public class SubstitutionMatrix {
@@ -12,14 +10,26 @@ public class SubstitutionMatrix {
 	private int[][] matrix;
 	private int gapCosts;
 	
+	/**
+	 * Creates a PAM score matrix with gap costs -1
+	 */
 	public SubstitutionMatrix() {
 		this(true);
 	}
 	
+	/**
+	 * Creates a PAM or BLOSUM matrix with gap costs -1
+	 * @param usePAM True for PAM250, False for BLOSUM62
+	 */
 	public SubstitutionMatrix(boolean usePAM) {
 		this(usePAM, -1);
 	}
 	
+	/**
+	 * Creates a PAM or BLOSUM matrix
+	 * @param usePAM True for PAM250, False for BLOSUM62
+	 * @param gapCosts Define linear gap costs (should be negative)
+	 */
 	public SubstitutionMatrix(boolean usePAM, int gapCosts) {
 		int[][] blosum62 = {
 				{ 4, -1, -2, -2,  0, -1, -1,  0, -2, -1, -1, -1, -1, -2, -1,  1,  0, -3, -2,  0},
@@ -43,6 +53,7 @@ public class SubstitutionMatrix {
 				{-2, -2, -2, -3, -2, -1, -2, -3,  2, -1, -1, -2, -1,  3, -3, -2, -2,  2,  7, -1},
 				{ 0, -3, -3, -3, -1, -2, -2, -3, -3,  3,  1, -2,  1, -1, -2, -2,  0, -3, -1,  4}};
 		
+		//TODO this PAM is a straight copy of the blosum
 		int[][] pam250 = {
 				{ 4, -1, -2, -2,  0, -1, -1,  0, -2, -1, -1, -1, -1, -2, -1,  1,  0, -3, -2,  0},
 				{-1,  5,  0, -2, -3,  1,  0, -2,  0, -3, -2,  2, -1, -3, -2, -1, -1, -3, -2, -3},
@@ -65,13 +76,18 @@ public class SubstitutionMatrix {
 				{-2, -2, -2, -3, -2, -1, -2, -3,  2, -1, -1, -2, -1,  3, -3, -2, -2,  2,  7, -1},
 				{ 0, -3, -3, -3, -1, -2, -2, -3, -3,  3,  1, -2,  1, -1, -2, -2,  0, -3, -1,  4}};
 		
-		if(usePAM == true)
-			matrix = blosum62;
-		else matrix = pam250;
+		if(usePAM == true)		// decide
+			matrix = blosum62;	// which one
+		else matrix = pam250;	// to use
 		
 		this.gapCosts = gapCosts;
 	}
 	
+	/**
+	 * returns the internal index for a given amino acid char
+	 * @param a Symbol for an amino acid
+	 * @return Index for the given amino acid
+	 */
     private static int getIndex(char a) {
     	// check for upper and lowercase characters
     	switch ((String.valueOf(a)).toUpperCase().charAt(0)) {
@@ -95,20 +111,37 @@ public class SubstitutionMatrix {
 	    	case 'W': return 17;
 	    	case 'Y': return 18;
 	    	case 'V': return 19;
-	    	default: return 20;
+	    	default: return 20;		// if not in the alphabet, go out of bounds
     	}
     }
     
+    /**
+     * Retrieves the score from the chosen substitution matrix.
+     * @param i Internal index for the first amino acid
+     * @param j	Internal index for the second amino acid
+     * @return the score of the match/mismatch/gap
+     */
     private int getScore(int i, int j) {
     	if (i < 0 || i >= matrix[0].length || j < 0 || j >= matrix[0].length)
-    		return gapCosts;
-    	return matrix[i][j];
+    		return gapCosts;	// if out of bounds we clearly have a gap!
+    	return matrix[i][j];	// return the score otherwise
     }
 
+    /**
+     * Retrieves the score for two amino acids
+     * @param a1 Amino acid 1
+     * @param a2 Amino acid 2
+     * @return Score of the match/mismatch
+     */
     public int getScore(char a1, char a2) {
-    	return getScore(getIndex(a1), getIndex(a2));  	
+    	return getScore(getIndex(a1), getIndex(a2));  	// call by index
     }
     
+    /**
+     * In case we forgot the gap costs somehow...
+     * @return gap costs
+     */
+    @Deprecated
     public int getGapCosts() {
     	return gapCosts;
     }

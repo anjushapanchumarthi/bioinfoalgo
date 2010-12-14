@@ -7,9 +7,10 @@ import java.util.LinkedList;
 import java.util.Vector;
 
  /**
-  * Example implementation of the BioinfAlgorithm interface.
+  * Implementation of the Needleman Wunsch Algorithm for pairwise alignments
+  * with linear gap costs.
   * 
-  * @author Martin Mann - http://www.bioinf.uni-freiburg.de/~mmann/
+  * @author Clemens Thoelken
   *
   */
 public class NeedlemanWunsch extends BioinfAlgorithm {
@@ -23,11 +24,11 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 	private LinkedList<Alignment> algnmts = new LinkedList<Alignment>();
 
 	 /**
-	  * Constructs an example algorithm and initializes all allowed parameters.
+	  * Constructor which generates an empty vector of parameters of the needed types.
 	  */
 	public NeedlemanWunsch() { 
 		
-		// create one example parameter for each type of parameter allowed
+		// create all needed parameters for the algorithm to work.
 		
 		super.parameters.add(new AlgorithmParameter(	
 				"Sequence 1"
@@ -70,6 +71,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				"to pairwise alignment with the help of dynamic programming.");
 	}
 	
+	/**
+	 * Main method of the algorithm.
+	 * 
+	 * @param params The filled out parameters are entered externally.
+	 * 
+	 * @return Output string containing the used parameters, the results and errors.
+	 */
 	@Override
 	public String run(Vector<AlgorithmParameter> params) {
 		
@@ -77,13 +85,14 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
+		//TODO Parse input for errors!!!
 		seq1 = (String) params.elementAt(0).data;
 		seq2 = (String) params.elementAt(1).data;
 		usePAM = (Boolean) params.elementAt(2).data;
 		gapCosts = (Integer) params.elementAt(3).data;
 		
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
-		M = new CostMatrix(seq1.length(), seq2.length(), omega);
+		M = new CostMatrix(seq1.length()+1, seq2.length()+1, omega);
 		
 		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
 		
@@ -97,25 +106,35 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 					+ params.elementAt(i).defVal.toString();
 		}
 		
+		//TODO print empty cost matrix to console   VERBOSE!!!
 		System.out.println(M.toString());
 		
-		int top = 0;
-		int left = 0;
-		int diagonal = 0;
-		int max;
+		int top = 0;		//score from above
+		int left = 0;		//score from left
+		int diagonal = 0;	//score diagonally (top-left)
+		int max;			//temporary maximum score
+		seq1 = "#" + seq1; seq2 = "#" + seq2; //increase sequence length, disregarded afterwards
 		
+		// fill the cost matrix row-wise
 		for(int i=0; i<seq1.length(); i++) {
 			for(int j=0; j<seq2.length(); j++) {
-				top = M.get(i, j-1) + omega.getScore(seq1.charAt(i), '_');
-				left = M.get(i-1, j) + omega.getScore('_', seq2.charAt(j));
-				diagonal = M.get(i-1, j-1) + omega.getScore(seq1.charAt(i), seq2.charAt(j));
-				max = top;
-				if(max<left) max = left;
-				if(max<diagonal) max = diagonal;
-				if(i+j!=0) M.set(i, j, max);
+				if(!(i==0 && j==0)) {
+					// calculate the three previous cells
+					top = M.get(i, j-1) + omega.getScore(seq1.charAt(i), '_');
+					left = M.get(i-1, j) + omega.getScore('_', seq2.charAt(j));
+					diagonal = M.get(i-1, j-1) + omega.getScore(seq1.charAt(i), seq2.charAt(j));
+					
+					max = top;						// take
+					if(max<left) max = left;		// the
+					if(max<diagonal) max = diagonal;// maximum
+					
+					M.set(i, j, max);	//update score
+				}
 			}
 		}
 		
+		// print final cost matrix to console   VERBOSE!!!
+		//TODO add to return string!!!
 		System.out.println(M.toString());
 		
 		Thread bt = new Thread(new Backtracer(new Alignment(2), seq1.length()-1, seq2.length()-1));
@@ -123,19 +142,23 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		try {
 			bt.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			// TODO some kind of synchronization should be handled!!!
 			e.printStackTrace();
 		}
+		
+		// ### print alignments to return string ###
 		for(int k=0; k<algnmts.size(); k++) 
 			retVal += "\n########### Alignment "+k+":\n"+algnmts.get(k).toString();
-		  // returning the algorithm results ...
+		
+		  // returning the algorithm results
 		return retVal;
 	}
 	
+	// auxilliary class for parallel semi-recursive backtracking
 	private class Backtracer implements Runnable {
 		
-		private int x;
-		private int y;
+		private int x;	// position in sequence 1
+		private int y;	// position in sequence 2
 		private Alignment algn;
 		
 		Backtracer(Alignment algn, int x, int y) {
@@ -145,43 +168,66 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 
 		@Override
 		public void run() {
-			boolean deadEnd = false;
-			System.out.println("Bin frisch geschlüpft: "+algn.toString());
-			char[] column = new char[algn.sequences.length];
+			
+			boolean deadEnd = false;	// termination variable
+			
+			//TODO could also be three single chars instead of arrays
+			char[] column = new char[2];	// Symbols in the sequences
+			char[] match = new char[1];		// match, mismatch or gap
+			
+			// to join indetermined number of threads, create a ThreadGroup
 			ThreadGroup tg = new ThreadGroup(algn.toString());
+			
+			// go diagonally, if other routs (insertion or deletion) are possible
+			// start a new thread with temporary alignment from there, die if diagonal
+			// move is not possible.
 			while(!deadEnd) {
-				deadEnd = true;
-				if(x < 0 || y < 0) break;
-				if(x == 0 && y == 0) {
-					algnmts.add(algn);
+				
+				deadEnd = true;		// generally we want to die
+				
+				if(x < 0 || y < 0) break; // we are BEYOND done (off the cliff)
+				
+				if(x == 0 && y == 0) {	// we are done, great!
+					column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
+					match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
+					algnmts.add(algn.addFirst(column, match));
 					break;
 				}
-				//System.out.println("Ich renn! "+algn.toString());
+
+				match[0] = ' ';
+				
+				// insertion, start new thread from there
 				if(M.get(x, y) == M.get(x-1, y) + omega.getScore(seq1.charAt(x), '_')) {
-					column[0] = seq1.charAt(x); column[1] = '_';
-					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column), x-1, y)).start();	
+					column[0] = seq1.charAt(x); column[1] = '_'; 
+					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column, match), x-1, y)).start();	
 				}
+				
+				// deletion, start new thread from there
 				if(M.get(x, y) == M.get(x, y-1) + omega.getScore('_', seq2.charAt(y))) {
-					column[1] = seq2.charAt(y); column[0] = '_';
-					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column), x, y-1)).start();	
+					column[0] = '_'; column[1] = seq2.charAt(y);
+					new Thread(tg, new Backtracer(new Alignment(algn).addFirst(column, match), x, y-1)).start();	
 				}
 
+				// match/mismatch, lets carry on
 				if(M.get(x, y) == M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y))) {
-					deadEnd = false;
-					column[1] = seq2.charAt(y); column[0] = seq1.charAt(x);
-					algn.addFirst(column);
+					deadEnd = false;	// HAH! not dead yet! I'm a survivor!
+					column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
+					match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
+					algn.addFirst(column, match);
 					x--; y--;
 				}
 			}
+			
+			// gather up the thread-mess we created and join them
 			Thread[] threads = new Thread[tg.activeCount()];
 			tg.enumerate(threads);
 			for(int i=0; i<tg.activeCount(); i++)
 				try {
 					threads[i].join();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
+					// TODO should be fine when access to algnmts is synchronized
 					e.printStackTrace();
-				}
+				}	// UH.. ugly... 6 lines and now bracketed for-loop!
 			
 		}
 		
