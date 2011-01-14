@@ -3,7 +3,6 @@ package cthoelken;
 import gui.AlgorithmParameter;
 import gui.BioinfAlgorithm;
 
-import java.util.LinkedList;
 import java.util.Random;
 import java.util.Vector;
 
@@ -14,72 +13,41 @@ import java.util.Vector;
   * @author Clemens Thoelken
   *
   */
-public class NeedlemanWunsch extends BioinfAlgorithm {
+public class Gotoh extends NeedlemanWunsch {
 
-	protected String seq1;
-	protected String seq2;
-	protected boolean usePAM;
-	protected int gapCosts;
-	protected boolean randomBackTrace;
-	protected SubstitutionMatrix omega;
-	protected CostMatrix M;
-	protected LinkedList<Alignment> algnmts = new LinkedList<Alignment>();
+	protected int gapCostsExt;
+	protected CostMatrix H;
+	protected CostMatrix V;
 
-	 /**
-	  * Constructor which generates an empty vector of parameters of the needed types.
-	  */
-	public NeedlemanWunsch() { 
+	/**
+	 * Constructor which generates an empty vector of parameters of the needed 
+	 * types.
+	 */
+	public Gotoh() { 
+		super();
 		
-		// create all needed parameters for the algorithm to work.
-		
-		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 1"
-				, "A first sequence of the amino acid alphabet with the length " +
-						"1-128 characters is required." 
-				, String.class
-				, "fcdeg"));
-		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 2"
-				, "A second sequence of the amino acid alphabet with the length " +
-						"1-128 characters is required." 
-				, String.class
-				, "dcddeg"));
+		// create additional parameters for the algorithm to work.
 		super.parameters.add(new AlgorithmParameter(
-				"PAM / BLOSUM"
-				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
-				, Boolean.class 
-				, new Boolean(true)));
-		super.parameters.add(new AlgorithmParameter(
-				"Random / Exhaustive Backtracking"
-				, "Choose YES to output only one random optimal alignment or NO" +
-						"  to output all optimal alignments at once." 
-				, Boolean.class 
-				, new Boolean(true)));
-		super.parameters.add(new AlgorithmParameter(
-				"Gap costs"
+				"Extended gap costs"
 				, "An integer for the constant gap costs used for scoring."
 				, Integer.class 
-				, new Integer(-4)));
+				, new Integer(-1)));
 
-	}
-
-	@Override
-	public Vector<AlgorithmParameter> getInputParameters() {
-		return super.parameters;
 	}
 
 	@Override
 	public String getName() {
-		return new String("Needleman-Wunsch");
+		return new String("Gotoh");
 	}
-	
 
 	@Override
 	public String getDescription() {
-		return new String("Implemenation of the Needleman-Wunsch approach " +
-				"to pairwise alignment with the help of dynamic programming.");
+		return new String("Implemenation of the Gotoh affine gap cost " +
+				"approach to pairwise alignment with the help of dynamic " +
+				"programming.");
 	}
 	
+	@Override
 	public int calculate() {
 		
 		int top = 0;		//score from above
@@ -90,9 +58,17 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		
 		// fill the cost matrix row-wise
 		for(int i=0; i<seq1.length(); i++) {
+			if(i != 0) H.set(i, 0, Integer.MIN_VALUE+1000); // init H fist row
 			for(int j=0; j<seq2.length(); j++) {
-				if(!(i==0 && j==0)) {
-					// calculate the three previous cells
+				if(i == 0 && j != 0) V.set(0, j, Integer.MIN_VALUE+1000); // init V first column
+				if(!(i == 0 && j == 0)) {
+					// calculate auxiliary matrices
+					if(i != 0) 
+						H.set(i, j, (M.get(i, j-1) + gapCosts + gapCostsExt < H.get(i, j-1) + gapCostsExt) 
+								? (H.get(i, j-1) + gapCostsExt) : (M.get(i, j-1) + gapCosts + gapCostsExt));
+					if(j != 0)
+						V.set(i, j, (M.get(i-1, j) + gapCosts + gapCostsExt < V.get(i-1, j) + gapCostsExt) 
+								? (V.get(i-1, j) + gapCostsExt) : (M.get(i-1, j) + gapCosts + gapCostsExt));
 					top = M.get(i, j-1) + omega.getScore(seq1.charAt(i), '_');
 					left = M.get(i-1, j) + omega.getScore('_', seq2.charAt(j));
 					diagonal = M.get(i-1, j-1) + omega.getScore(seq1.charAt(i), seq2.charAt(j));
@@ -129,9 +105,12 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		usePAM = (Boolean) params.elementAt(2).data;
 		randomBackTrace = (Boolean) params.elementAt(3).data;
 		gapCosts = (Integer) params.elementAt(4).data;
+		gapCostsExt = (Integer) params.elementAt(5).data;
 		
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
+		H = new CostMatrix(seq1.length()+1, seq2.length()+1);
+		V = new CostMatrix(seq1.length()+1, seq2.length()+1);
 		
 		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
 		
@@ -202,8 +181,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		if(randomBackTrace && num_psbl > 1) {
 			int random;
 			if(num_psbl == 3) {
-				random = new Random().nextInt(3);
-				psbl[0] = 0; psbl[1] = 0; psbl[2] = 0; psbl[random] = 1;
+				psbl[0] = 0; psbl[1] = 0; psbl[2] = 0; psbl[new Random().nextInt(3)] = 1;
 			}
 			if(num_psbl == 2) {
 				random = new Random().nextInt(2);
@@ -245,7 +223,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 	 */
 	public static void main(String[] args) {
 		  // create an instance of this class
-		NeedlemanWunsch myInstance = new NeedlemanWunsch();
+		Gotoh myInstance = new Gotoh();
 		  // run the example the instance with the default parameters
 		BioinfAlgorithm.runAlgorithmDefaults( myInstance );
 	}

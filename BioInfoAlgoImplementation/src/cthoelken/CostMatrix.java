@@ -10,9 +10,6 @@ import java.util.Arrays;
 public class CostMatrix {
 	
 	private int[][] m;
-	
-	@SuppressWarnings("unused")
-	private SubstitutionMatrix match;
 
 	/**
 	 * Constructor
@@ -20,22 +17,10 @@ public class CostMatrix {
 	 * @param yLength Length of sequence 2
 	 */
 	CostMatrix(int xLength, int yLength) {
-		this(xLength, yLength, new SubstitutionMatrix(true));
-	}
-	
-	/**
-	 * Constructor for automatic computation
-	 * @param xLength
-	 * @param yLength
-	 * @param sub A given SubstitutionMatrix to compute values by itself
-	 */
-	//@Deprecated
-	CostMatrix(int xLength, int yLength, SubstitutionMatrix sub) {
 		if(xLength < 1 || yLength < 1) 
 			throw new InvalidParameterException("Sequence length not feasable!");
 		m = new int[xLength][yLength];
 		m[0][0] = 0;
-		match = sub;
 	}
 	
 	/**
@@ -46,8 +31,12 @@ public class CostMatrix {
 	 */
 	public int get(int x, int y) {
 		if(x < 0 || y < 0 || x >= m.length || y >= m[0].length) 
-			return -Integer.MIN_VALUE+1000;
+			return Integer.MIN_VALUE+1000;
 		return m[x][y];
+	}
+	
+	public int score() {
+		return m[m.length-1][m[0].length-1];
 	}
 	
 	/**

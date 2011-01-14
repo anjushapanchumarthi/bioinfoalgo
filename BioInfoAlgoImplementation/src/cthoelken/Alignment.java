@@ -46,7 +46,8 @@ public class Alignment {
 	}
 	
 	/**
-	 * Attaches a column to the front of the sequences
+	 * Attaches a column to the front of the returned alignment
+	 * Keeps the current alignment unchanged
 	 * @param seqColumn Column of symbols which were aligned
 	 * @param matchColumn Column of match/mismatch symbols for the alignment
 	 * @return Returns the updated alignment
@@ -54,16 +55,17 @@ public class Alignment {
 	public Alignment addFirst(char[] seqColumn, char[] matchColumn) {
 		if(seqColumn.length != sequences.length || matchColumn.length != matches.length) 
 			throw new InvalidParameterException("Array length not correct!");
-		int counter = 0;
-		for(int j=0; j<seqColumn.length; j++)
-			if(seqColumn[j]=='#') counter++;
-		if(counter == seqColumn.length) return this;
-		sequences[0] = seqColumn[0] + sequences[0];
+//		int counter = 0;
+//		for(int j=0; j<seqColumn.length; j++)
+//			if(seqColumn[j]=='#') counter++;
+//		if(counter == seqColumn.length) return this;
+		Alignment temp = new Alignment(this);
+		temp.sequences[0] = seqColumn[0] + sequences[0];
 		for(int i=1; i<sequences.length; i++) {
-			sequences[i] = seqColumn[i] + sequences[i];
-			matches[i-1] = matchColumn[i-1] + matches[i-1];
+			temp.sequences[i] = seqColumn[i] + sequences[i];
+			temp.matches[i-1] = matchColumn[i-1] + matches[i-1];
 		}
-		return this;
+		return temp;
 	}
 	
 	/**
