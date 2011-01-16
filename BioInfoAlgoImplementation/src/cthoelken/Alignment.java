@@ -3,16 +3,42 @@ package cthoelken;
 import java.security.InvalidParameterException;
 
 /**
- * Object to keep all needed sequences, symbols for matches and mismatches between them
- * and print out the alignment.
+ * Object to keep all needed sequences, symbols for matches and mismatches 
+ * between them and print out the alignment.
  * 
  * @author Clemens Thoelken
  *
  */
 public class Alignment {
 	
+	public String[] names;
 	public String[] sequences;
 	public String[] matches;	// match/mismatch symbols
+	public int[] scores;
+	
+	public void setSequence(int index, String seq) {
+		if(index >= sequences.length || index <= 0)
+			throw new IllegalArgumentException("Index out of bounds in Alignment");
+		sequences[index] = seq;
+	}
+	
+	public void setName(int index, String name) {
+		if(index >= sequences.length || index <= 0)
+			throw new IllegalArgumentException("Index out of bounds in Alignment");
+		names[index] = name;
+	}
+	
+	public String getName(int index) {
+		if(index >= sequences.length || index <= 0)
+			throw new IllegalArgumentException("Index out of bounds in Alignment");
+		return names[index];
+	}
+	
+	public String getSequence(int index) {
+		if(index >= sequences.length || index <= 0)
+			throw new IllegalArgumentException("Index out of bounds in Alignment");
+		return sequences[index];
+	}
 	
 	/**
 	 * Constructor
@@ -21,13 +47,15 @@ public class Alignment {
 	 */
 	Alignment(int seqCount) {
 		if(seqCount < 2)
-			throw new InvalidParameterException("Too few sequences for an alignment!");
+			throw new InvalidParameterException("Too few sequences for " +
+					"an alignment!");
+		names = new String[seqCount];
 		sequences = new String[seqCount];
 		matches = new String[seqCount-1];
-		sequences[0] = "";
+		scores = new int[seqCount-1];
+		sequences[0] = ""; names[0] = "";
 		for(int i=1; i<seqCount; i++) {
-			sequences[i] = "";
-			matches[i-1] = "";
+			names[i] = ""; sequences[i] = ""; matches[i-1] = ""; scores[i-1] = 0;
 		}
 	}
 	
@@ -53,7 +81,8 @@ public class Alignment {
 	 * @return Returns the updated alignment
 	 */
 	public Alignment addFirst(char[] seqColumn, char[] matchColumn) {
-		if(seqColumn.length != sequences.length || matchColumn.length != matches.length) 
+		if(seqColumn.length != sequences.length || 
+				matchColumn.length != matches.length) 
 			throw new InvalidParameterException("Array length not correct!");
 //		int counter = 0;
 //		for(int j=0; j<seqColumn.length; j++)
@@ -75,7 +104,8 @@ public class Alignment {
 	 * @return Returns the updated alignment
 	 */
 	public Alignment addLast(char[] seqColumn, char[] matchColumn) {
-		if(seqColumn.length != sequences.length || matchColumn.length != matches.length) 
+		if(seqColumn.length != sequences.length || 
+				matchColumn.length != matches.length) 
 			throw new InvalidParameterException("Array length not correct!");
 		sequences[0] = seqColumn[0] + sequences[0];
 		for(int i=1; i<sequences.length; i++) {
@@ -92,8 +122,13 @@ public class Alignment {
 		String retVal = "";
 		retVal += "Seq1: " + sequences[0] + "\n";
 		for(int i=1; i<sequences.length; i++)
-			retVal += "      " + matches[i-1] + "\n" + "Seq" + (i+1) + ": "+ sequences[i] + "\n";
+			retVal += "      " + matches[i-1] + "\n" + "Seq" + (i+1) +
+					": "+ sequences[i] + "\n";
 		return retVal;
+	}
+
+	public int size() {
+		return sequences.length;
 	}
 	
 
