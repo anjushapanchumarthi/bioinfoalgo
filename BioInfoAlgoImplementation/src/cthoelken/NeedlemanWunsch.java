@@ -80,7 +80,23 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				"to pairwise alignment with the help of dynamic programming.");
 	}
 	
-	public int calculate() {
+	public double getScore(String s1, String s2, boolean usePAM, int gapCosts) {
+		seq1 = s1; seq2 = s2; this.usePAM = usePAM; this.gapCosts = gapCosts;
+		omega = new SubstitutionMatrix(usePAM, gapCosts);
+		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
+		return (double) calculate();
+	}
+	
+	public Alignment getAlignment(String s1, String s2, boolean usePAM, int gapCosts) {
+		seq1 = s1; seq2 = s2; this.usePAM = usePAM; this.gapCosts = gapCosts;
+		randomBackTrace = true;
+		omega = new SubstitutionMatrix(usePAM, gapCosts);
+		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
+		calculate(); backtrack(seq1.length()-1, seq2.length()-1, new Alignment(2));
+		return algnmts.getFirst();
+	}
+	
+	protected int calculate() {
 		
 		int top = 0;		//score from above
 		int left = 0;		//score from left
@@ -95,7 +111,8 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 					// calculate the three previous cells
 					top = M.get(i, j-1) + omega.getScore(seq1.charAt(i), '_');
 					left = M.get(i-1, j) + omega.getScore('_', seq2.charAt(j));
-					diagonal = M.get(i-1, j-1) + omega.getScore(seq1.charAt(i), seq2.charAt(j));
+					diagonal = M.get(i-1, j-1)
+							+ omega.getScore(seq1.charAt(i), seq2.charAt(j));
 					
 					max = top;						// take
 					if(max<left) max = left;		// the
@@ -162,7 +179,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return retVal;
 	}
 	
-	private void backtrack(int x, int y, Alignment algn) {
+	protected void backtrack(int x, int y, Alignment algn) {
 		
 		System.out.println("backtrack: x="+x+" y="+y);
 		

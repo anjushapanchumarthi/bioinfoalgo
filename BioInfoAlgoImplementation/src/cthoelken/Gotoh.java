@@ -7,8 +7,8 @@ import java.util.Random;
 import java.util.Vector;
 
  /**
-  * Implementation of the Needleman Wunsch Algorithm for pairwise alignments
-  * with linear gap costs.
+  * Implementation of the Gotoh Algorithm for pairwise alignments
+  * with affine gap costs.
   * 
   * @author Clemens Thoelken
   *
