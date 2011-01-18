@@ -96,7 +96,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return algnmts.getFirst();
 	}
 	
-	protected int calculate() {
+	private int calculate() {
 		
 		int top = 0;		//score from above
 		int left = 0;		//score from left
@@ -179,7 +179,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return retVal;
 	}
 	
-	protected void backtrack(int x, int y, Alignment algn) {
+	private void backtrack(int x, int y, Alignment algn) {
 		
 		System.out.println("backtrack: x="+x+" y="+y);
 		

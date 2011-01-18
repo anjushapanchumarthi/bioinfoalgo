@@ -47,8 +47,7 @@ public class Gotoh extends NeedlemanWunsch {
 				"programming.");
 	}
 	
-	@Override
-	public int calculate() {
+	private int calculate() {
 		
 		int top = 0;		//score from above
 		int left = 0;		//score from left
@@ -84,6 +83,82 @@ public class Gotoh extends NeedlemanWunsch {
 		//seq1 = seq1.substring(1); seq2 = seq2.substring(1);
 		return M.score();
 	}
+	
+
+	private void backtrack(int x, int y, Alignment algn) {
+		
+		System.out.println("backtrack: x="+x+" y="+y);
+		
+		if(x < 0 || y < 0) return;	// we are out of bounds, shouldn't happen
+		
+		char[] column = new char[2];
+		char[] match = new char[1];
+		
+		if(x == 0 && y == 0) {	// we are done, great!
+//			column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
+//			match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
+//			algnmts.add(algn.addFirst(column, match));
+			System.out.println("All is good!");
+			algnmts.add(algn);
+			return;
+		}
+		
+		int[] psbl = {0, 0, 0};
+		
+		System.out.println("\n M(x,y) = "+M.get(x, y)+" - M(x,y-1) = "+M.get(x, y-1)+" - SEQ2: "+seq2.charAt(y)); //TODO
+		
+		// insertion
+		if(M.get(x, y) == H.get(x, y))
+			psbl[0] = 1;
+		
+		// deletion, start new thread from there
+		if(M.get(x, y) == V.get(x, y))
+			psbl[1] = 1;
+
+		// match/mismatch, lets carry on
+		if(M.get(x, y) == M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y)))
+			psbl[2] = 1;
+		
+		System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
+		
+		int num_psbl = psbl[0]+psbl[1]+psbl[2];
+		if(randomBackTrace && num_psbl > 1) {
+			int random;
+			if(num_psbl == 3) {
+				psbl[0] = 0; psbl[1] = 0; psbl[2] = 0; psbl[new Random().nextInt(3)] = 1;
+			}
+			if(num_psbl == 2) {
+				random = new Random().nextInt(2);
+				if(psbl[0] == 1) {
+					if(psbl[1] == 1) { 
+						psbl[0] = random; psbl[1] = 1-random;
+					} else { psbl[0] = random; psbl[2] = 1-random; }
+				} else { psbl[1] = random; psbl[2] = 1-random; }
+			}
+			System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
+		}
+		
+		match[0] = ' ';
+		
+		if(psbl[0] == 1) {
+			System.out.println("\n I go left");
+			column[0] = seq1.charAt(x); column[1] = '_'; 
+			backtrack(x-1, y, algn.addFirst(column, match));
+		}
+		if(psbl[1] == 1) {
+			System.out.println("\n I go right");
+			column[0] = '_'; column[1] = seq2.charAt(y);
+			backtrack(x, y-1, algn.addFirst(column, match));
+		}
+		if(psbl[2] == 1) {
+			System.out.println("\n I go diagonally");
+			column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
+			match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
+			backtrack(x-1, y-1, algn.addFirst(column, match));
+		}
+	}
+	
+
 	
 	/**
 	 * Main method of the algorithm.
@@ -141,80 +216,6 @@ public class Gotoh extends NeedlemanWunsch {
 		return retVal;
 	}
 	
-	private void backtrack(int x, int y, Alignment algn) {
-		
-		System.out.println("backtrack: x="+x+" y="+y);
-		
-		if(x < 0 || y < 0) return;	// we are out of bounds, shouldn't happen
-		
-		char[] column = new char[2];
-		char[] match = new char[1];
-		
-		if(x == 0 && y == 0) {	// we are done, great!
-//			column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
-//			match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
-//			algnmts.add(algn.addFirst(column, match));
-			System.out.println("All is good!");
-			algnmts.add(algn);
-			return;
-		}
-		
-		int[] psbl = {0, 0, 0};
-		
-		System.out.println("\n M(x,y) = "+M.get(x, y)+" - M(x,y-1) = "+M.get(x, y-1)+" - SEQ2: "+seq2.charAt(y)); //TODO
-		
-		// insertion
-		if(M.get(x, y) == M.get(x-1, y) + omega.getScore(seq1.charAt(x), '_'))
-			psbl[0] = 1;
-		
-		// deletion, start new thread from there
-		if(M.get(x, y) == M.get(x, y-1) + omega.getScore('_', seq2.charAt(y)))
-			psbl[1] = 1;
-
-		// match/mismatch, lets carry on
-		if(M.get(x, y) == M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y)))
-			psbl[2] = 1;
-		
-		System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
-		
-		int num_psbl = psbl[0]+psbl[1]+psbl[2];
-		if(randomBackTrace && num_psbl > 1) {
-			int random;
-			if(num_psbl == 3) {
-				psbl[0] = 0; psbl[1] = 0; psbl[2] = 0; psbl[new Random().nextInt(3)] = 1;
-			}
-			if(num_psbl == 2) {
-				random = new Random().nextInt(2);
-				if(psbl[0] == 1) {
-					if(psbl[1] == 1) { 
-						psbl[0] = random; psbl[1] = 1-random;
-					} else { psbl[0] = random; psbl[2] = 1-random; }
-				} else { psbl[1] = random; psbl[2] = 1-random; }
-			}
-			System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
-		}
-		
-		match[0] = ' ';
-		
-		if(psbl[0] == 1) {
-			System.out.println("\n I go left");
-			column[0] = seq1.charAt(x); column[1] = '_'; 
-			backtrack(x-1, y, algn.addFirst(column, match));
-		}
-		if(psbl[1] == 1) {
-			System.out.println("\n I go right");
-			column[0] = '_'; column[1] = seq2.charAt(y);
-			backtrack(x, y-1, algn.addFirst(column, match));
-		}
-		if(psbl[2] == 1) {
-			System.out.println("\n I go diagonally");
-			column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
-			match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
-			backtrack(x-1, y-1, algn.addFirst(column, match));
-		}
-	}
-	
-
 	/**
 	 * Creates an instance of this class and calls the run method using the
 	 * default parameters.
