@@ -115,7 +115,7 @@ public class PGMA extends BioinfAlgorithm {
 		
 		for(int i = 0; i <= sequences.size(); i++) {
 			ranks[i] = sequences.size();
-			for(int j = 0; j <= sequences.size()-1; i++) {
+			for(int j = i+1; j <= sequences.size()-1; i++) {
 				D.set(i, j, (int) nw.getScore(sequences.getSequence(i), 
 						sequences.getSequence(j), usePAM, gapCosts));
 				if(D.get(i, j) > max && i != j) {
@@ -124,6 +124,7 @@ public class PGMA extends BioinfAlgorithm {
 				}
 			}
 		}
+		
 		ranks[bestPair[0]] = 0; ranks[bestPair[1]] = 0;
 		for(int k = 0; k <= sequences.size(); k++) {
 			//TODO Hab keinen Schimmer was ich hier noch machen will
