@@ -8,7 +8,7 @@ package cthoelken;
 public class SubstitutionMatrix {
 
 	private int[][] matrix;
-	private int gapCosts;
+	private double gapCosts;
 	
 	/**
 	 * Creates a PAM score matrix with gap costs -1
@@ -30,7 +30,7 @@ public class SubstitutionMatrix {
 	 * @param usePAM True for PAM250, False for BLOSUM62
 	 * @param gapCosts Define linear gap costs (should be negative)
 	 */
-	public SubstitutionMatrix(boolean usePAM, int gapCosts) {
+	public SubstitutionMatrix(boolean usePAM, double gapCosts) {
 		int[][] PAM250={
 				 { 2, -2,  0,  0, -2,  0,  0,  1, -1, -1, -2, -1, -1, -3,  1,  1,  1, -6, -3,  0,  0,  0,  0, -8},
 				 {-2,  6,  0, -1, -4,  1, -1, -3,  2, -2, -3,  3,  0, -4,  0,  0, -1,  2, -4, -2, -1,  0, -1, -8},
@@ -133,7 +133,7 @@ public class SubstitutionMatrix {
      * @param j	Internal index for the second amino acid
      * @return the score of the match/mismatch/gap
      */
-    private int getScore(int i, int j) {
+    private double getScore(int i, int j) {
     	if (i < 0 || i >= matrix[0].length-1 || j < 0 || j >= matrix[0].length-1)
     		return gapCosts;	// if out of bounds we clearly have a gap!
     	return matrix[i][j];	// return the score otherwise
@@ -145,16 +145,8 @@ public class SubstitutionMatrix {
      * @param a2 Amino acid 2
      * @return Score of the match/mismatch
      */
-    public int getScore(char a1, char a2) {
+    public double getScore(char a1, char a2) {
     	return getScore(getIndex(a1), getIndex(a2));  	// call by index
     }
     
-    /**
-     * In case we forgot the gap costs somehow...
-     * @return gap costs
-     */
-    @Deprecated
-    public int getGapCosts() {
-    	return gapCosts;
-    }
 }

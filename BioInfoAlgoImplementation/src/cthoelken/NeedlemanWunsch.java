@@ -19,14 +19,15 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 	protected String seq1;
 	protected String seq2;
 	protected boolean usePAM;
-	protected int gapCosts;
+	protected double gapCosts;
 	protected boolean randomBackTrace;
 	protected SubstitutionMatrix omega;
 	protected CostMatrix M;
 	protected LinkedList<Alignment> algnmts = new LinkedList<Alignment>();
 
 	 /**
-	  * Constructor which generates an empty vector of parameters of the needed types.
+	  * Constructor which generates an empty vector of parameters of the needed 
+	  * types.
 	  */
 	public NeedlemanWunsch() { 
 		
@@ -37,13 +38,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "fcdeg"));
+				, "Wurzel"));
 		super.parameters.add(new AlgorithmParameter(	
 				"Sequence 2"
 				, "A second sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "dcddeg"));
+				, "viertel"));
 		super.parameters.add(new AlgorithmParameter(
 				"PAM / BLOSUM"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
@@ -57,9 +58,9 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				, new Boolean(true)));
 		super.parameters.add(new AlgorithmParameter(
 				"Gap costs"
-				, "An integer for the constant gap costs used for scoring."
-				, Integer.class 
-				, new Integer(-4)));
+				, "A double for the constant gap costs used for scoring."
+				, Double.class 
+				, new Double(-1.0)));
 
 	}
 
@@ -80,14 +81,14 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				"to pairwise alignment with the help of dynamic programming.");
 	}
 	
-	public double getScore(String s1, String s2, boolean usePAM, int gapCosts) {
+	public double getScore(String s1, String s2, boolean usePAM, double gapCosts) {
 		seq1 = s1; seq2 = s2; this.usePAM = usePAM; this.gapCosts = gapCosts;
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
-		return (double) calculate();
+		return calculate();
 	}
 	
-	public Alignment getAlignment(String s1, String s2, boolean usePAM, int gapCosts) {
+	public Alignment getAlignment(String s1, String s2, boolean usePAM, double gapCosts) {
 		seq1 = s1; seq2 = s2; this.usePAM = usePAM; this.gapCosts = gapCosts;
 		randomBackTrace = true;
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
@@ -96,12 +97,30 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return algnmts.getFirst();
 	}
 	
-	private int calculate() {
+	public double maxValue(double... value) {
+		double max = Double.NEGATIVE_INFINITY;
+		for(int i = 0; i < value.length; i++)
+			if(max < value[i]) max = value[i];
+		return max;
+	}
+	
+	public int maxIndex(double... value) {
+		double max = 0;
+		int index = 0;
+		for(int i = 0; i < value.length; i++)
+			if(max < value[i]) {
+				max = value[i];
+				index = i;
+			}
+		return index;
+	}
+	
+	private double calculate() {
 		
-		int top = 0;		//score from above
-		int left = 0;		//score from left
-		int diagonal = 0;	//score diagonally (top-left)
-		int max;			//temporary maximum score
+		double top = 0;		//score from above
+		double left = 0;		//score from left
+		double diagonal = 0;	//score diagonally (top-left)
+		double max;			//temporary maximum score
 		seq1 = "#" + seq1; seq2 = "#" + seq2; //increase sequence length, disregarded afterwards
 		
 		// fill the cost matrix row-wise
@@ -118,7 +137,9 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 					if(max<left) max = left;		// the
 					if(max<diagonal) max = diagonal;// maximum
 					
-					M.set(i, j, max);	//update score
+					M.set(i, j, maxValue(M.get(i, j-1) + gapCosts,
+							M.get(i-1, j) + gapCosts, M.get(i-1, j-1)
+							+ omega.getScore(seq1.charAt(i), seq2.charAt(j))));
 				}
 			}
 		}
@@ -145,7 +166,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		seq2 = (String) params.elementAt(1).data;
 		usePAM = (Boolean) params.elementAt(2).data;
 		randomBackTrace = (Boolean) params.elementAt(3).data;
-		gapCosts = (Integer) params.elementAt(4).data;
+		gapCosts = (Double) params.elementAt(4).data;
 		
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
@@ -175,7 +196,6 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 			retVal += "\n########### Alignment "+k+":\n"+algnmts.get(k).toString();
 		
 		  // returning the algorithm results
-		System.out.println("######################\n"+omega.getScore('b', 'b'));
 		return retVal;
 	}
 	
@@ -199,15 +219,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		
 		int[] psbl = {0, 0, 0};
 		
-		System.out.println("\n M(x,y) = "+M.get(x, y)+" - M(x,y-1) = "+M.get(x, y-1)+" - SEQ2: "+seq2.charAt(y)); //TODO
-		
 		// insertion
-		if(M.get(x, y) == M.get(x-1, y) + omega.getScore(seq1.charAt(x), '_'))
-			psbl[0] = 1;
+		if(M.get(x, y) == M.get(x-1, y) + gapCosts) psbl[0] = 1;
+		System.out.println("\nleft: " + M.get(x, y) + "=" + (M.get(x-1, y) + gapCosts));
 		
 		// deletion, start new thread from there
-		if(M.get(x, y) == M.get(x, y-1) + omega.getScore('_', seq2.charAt(y)))
-			psbl[1] = 1;
+		if(M.get(x, y) == M.get(x, y-1) + gapCosts) psbl[1] = 1;
+		System.out.println("\ntop: " + M.get(x, y) + "=" + M.get(x, y-1) + gapCosts);
 
 		// match/mismatch, lets carry on
 		if(M.get(x, y) == M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y)))

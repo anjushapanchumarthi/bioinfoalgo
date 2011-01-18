@@ -111,7 +111,7 @@ public class PGMA extends BioinfAlgorithm {
 		NeedlemanWunsch nw = new NeedlemanWunsch();
 		int[] bestPair = new int[2];
 		int[] ranks = new int[sequences.size()];
-		int max = 0;
+		double max = 0;
 		
 		for(int i = 0; i <= sequences.size(); i++) {
 			ranks[i] = sequences.size();
