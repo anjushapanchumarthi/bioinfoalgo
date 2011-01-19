@@ -38,13 +38,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "Wurzel"));
+				, "CLEMENS"));
 		super.parameters.add(new AlgorithmParameter(	
 				"Sequence 2"
 				, "A second sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "viertel"));
+				, "STEFFEN"));
 		super.parameters.add(new AlgorithmParameter(
 				"PAM / BLOSUM"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
@@ -55,12 +55,12 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				, "Choose YES to output only one random optimal alignment or NO" +
 						"  to output all optimal alignments at once." 
 				, Boolean.class 
-				, new Boolean(true)));
+				, new Boolean(false)));
 		super.parameters.add(new AlgorithmParameter(
 				"Gap costs"
 				, "A double for the constant gap costs used for scoring."
 				, Double.class 
-				, new Double(-1.0)));
+				, new Double(-4.0)));
 
 	}
 

@@ -31,7 +31,7 @@ public class CostMatrix {
 	 */
 	public double get(int x, int y) {
 		if(x < 0 || y < 0 || x >= m.length || y >= m[0].length) 
-			return -1000;
+			return Double.NEGATIVE_INFINITY;
 		return m[x][y];
 	}
 	

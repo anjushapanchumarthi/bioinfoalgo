@@ -29,7 +29,7 @@ public class Gotoh extends NeedlemanWunsch {
 		// create additional parameters for the algorithm to work.
 		super.parameters.add(new AlgorithmParameter("Extended gap costs",
 				"An integer for the constant gap costs used for scoring.",
-				Double.class, new Double(-1.0)));
+				Double.class, new Double(-2.0)));
 
 	}
 
@@ -53,12 +53,12 @@ public class Gotoh extends NeedlemanWunsch {
 		// fill the cost matrix row-wise
 		for (int i = 0; i < seq1.length(); i++) {
 			H.set(i, 0, Double.NEGATIVE_INFINITY); // init H fist row
-			System.out.println("\n"+H.toString());
 			for (int j = 0; j < seq2.length(); j++) {
 				if (i == 0)
 					V.set(0, j, Double.NEGATIVE_INFINITY); // init V first column
-				System.out.println("\n"+V.toString());
-				if (!(i == 0 && j == 0)) {
+				if(i != 0) M.set(i, 0, M.get(i-1, 0) + gapCosts + gapCostsExt);
+				if(j != 0) M.set(0, j, M.get(0, j-1) + gapCosts + gapCostsExt);
+				if ((i != 0 || j != 0)) {
 					// calculate auxiliary matrices
 					if (j != 0)
 						H.set(i, j, maxValue(M.get(i-1, j)
@@ -75,7 +75,6 @@ public class Gotoh extends NeedlemanWunsch {
 				}
 			}
 		}
-		// seq1 = seq1.substring(1); seq2 = seq2.substring(1);
 		return M.score();
 	}
 
