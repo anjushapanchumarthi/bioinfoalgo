@@ -38,13 +38,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "CLEMENS"));
+				, "FCDEG"));
 		super.parameters.add(new AlgorithmParameter(	
 				"Sequence 2"
 				, "A second sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "STEFFEN"));
+				, "DCDDEG"));
 		super.parameters.add(new AlgorithmParameter(
 				"PAM / BLOSUM"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 

@@ -68,10 +68,15 @@ public class SumOfPairs extends BioinfAlgorithm {
 	}
 	
 	private Alignment calculateFirstColumn(Alignment algn) {
-		double score = 0;
+		double gap100 = 0;
+		double gap010 = 0;
+		double gap001 = 0;
+		double gap110 = 0;
+		double gap011 = 0;
+		double gap101 = 0;
+		double score = algn.getScore();
 		for(int i = 0; i < algn.size(); i++) {
 			for(int j = i+1; j < algn.size(); j++) {
-				
 				score += omega.getScore(algn.getSequence(i).charAt(0), algn.getSequence(j).charAt(0));
 			}
 		}

@@ -29,7 +29,7 @@ public class Gotoh extends NeedlemanWunsch {
 		// create additional parameters for the algorithm to work.
 		super.parameters.add(new AlgorithmParameter("Extended gap costs",
 				"An integer for the constant gap costs used for scoring.",
-				Double.class, new Double(-2.0)));
+				Double.class, new Double(-1.0)));
 
 	}
 
@@ -52,27 +52,25 @@ public class Gotoh extends NeedlemanWunsch {
 
 		// fill the cost matrix row-wise
 		for (int i = 0; i < seq1.length(); i++) {
-			H.set(i, 0, Double.NEGATIVE_INFINITY); // init H fist row
+			//H.set(i, 0, Double.NEGATIVE_INFINITY); // init H fist row
 			for (int j = 0; j < seq2.length(); j++) {
-				if (i == 0)
-					V.set(0, j, Double.NEGATIVE_INFINITY); // init V first column
-				if(i != 0) M.set(i, 0, M.get(i-1, 0) + gapCosts + gapCostsExt);
-				if(j != 0) M.set(0, j, M.get(0, j-1) + gapCosts + gapCostsExt);
-				if ((i != 0 || j != 0)) {
-					// calculate auxiliary matrices
-					if (j != 0)
-						H.set(i, j, maxValue(M.get(i-1, j)
-								+ gapCosts + gapCostsExt,
-								H.get(i-1, j) + gapCostsExt));
-					if (i != 0)
-						V.set(i, j, maxValue(M.get(i, j-1)
-								+ gapCosts + gapCostsExt,
-								V.get(i, j-1) + gapCostsExt));
-
+				//if (i == 0)
+				//	V.set(0, j, Double.NEGATIVE_INFINITY); // init V first column
+				if(i != 0 && j == 0) M.set(i, 0, M.get(i-1, 0) + gapCosts + gapCostsExt);
+				if(j != 0 && i == 0) M.set(0, j, M.get(0, j-1) + gapCosts + gapCostsExt);
+				//if (i != 0 || j != 0)
+					H.set(i, j, maxValue(M.get(i-1, j)
+							+ gapCosts + gapCostsExt, 
+							H.get(i-1, j) + gapCostsExt));
+				//if (j != 0 || i != 0)
+					V.set(i, j, maxValue(M.get(i, j-1)
+							+ gapCosts + gapCostsExt,
+							V.get(i, j-1) + gapCostsExt));
+				if (!(i == 0 && j == 0))
 					M.set(i, j, maxValue(M.get(i-1, j-1)
 							+ omega.getScore(seq1.charAt(i), seq2.charAt(j)),
 							H.get(i, j), V.get(i, j)));
-				}
+									
 			}
 		}
 		return M.score();
