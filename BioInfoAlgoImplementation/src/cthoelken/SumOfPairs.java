@@ -21,6 +21,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 	protected boolean usePAM;
 	protected double gapCosts;
 	protected Alignment alignment;
+	protected SubstitutionMatrix omega;
 
 	 /**
 	  * Constructor which generates an empty vector of parameters of the needed 
@@ -66,6 +67,17 @@ public class SumOfPairs extends BioinfAlgorithm {
 				"to multiple alignment with the help of dynamic programming.");
 	}
 	
+	private Alignment calculateFirstColumn(Alignment algn) {
+		double score = 0;
+		for(int i = 0; i < algn.size(); i++) {
+			for(int j = i+1; j < algn.size(); j++) {
+				
+				score += omega.getScore(algn.getSequence(i).charAt(0), algn.getSequence(j).charAt(0));
+			}
+		}
+		return algn;
+	}
+	
 	/**
 	 * Main method of the algorithm.
 	 * 
@@ -84,6 +96,8 @@ public class SumOfPairs extends BioinfAlgorithm {
 		String sequenceString = (String) params.elementAt(0).data;
 		usePAM = (Boolean) params.elementAt(1).data;
 		gapCosts = (Double) params.elementAt(2).data;
+		
+		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		
 		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
 		

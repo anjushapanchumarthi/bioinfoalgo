@@ -14,7 +14,7 @@ public class Alignment {
 	public String[] names;
 	public String[] sequences;
 	public String[] matches;	// match/mismatch symbols
-	public int[] scores;
+	public double score;
 	
 	public void setSequence(int index, String seq) {
 		if(index >= sequences.length || index <= 0)
@@ -40,6 +40,14 @@ public class Alignment {
 		return sequences[index];
 	}
 	
+	public double getScore() {
+		return score;
+	}
+	
+	public void setScore(Double score) {
+		this.score = score;
+	}
+	
 	/**
 	 * Constructor
 	 * 
@@ -52,10 +60,10 @@ public class Alignment {
 		names = new String[seqCount];
 		sequences = new String[seqCount];
 		matches = new String[seqCount-1];
-		scores = new int[seqCount-1];
+		score = 0;
 		sequences[0] = ""; names[0] = "";
 		for(int i=1; i<seqCount; i++) {
-			names[i] = ""; sequences[i] = ""; matches[i-1] = ""; scores[i-1] = 0;
+			names[i] = ""; sequences[i] = ""; matches[i-1] = "";
 		}
 	}
 	
