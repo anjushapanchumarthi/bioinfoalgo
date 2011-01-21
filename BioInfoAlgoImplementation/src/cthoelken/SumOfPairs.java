@@ -67,19 +67,44 @@ public class SumOfPairs extends BioinfAlgorithm {
 				"to multiple alignment with the help of dynamic programming.");
 	}
 	
-	private Alignment calculateFirstColumn(Alignment algn) {
-		double gap100 = 0;
-		double gap010 = 0;
-		double gap001 = 0;
-		double gap110 = 0;
-		double gap011 = 0;
-		double gap101 = 0;
-		double score = algn.getScore();
-		for(int i = 0; i < algn.size(); i++) {
-			for(int j = i+1; j < algn.size(); j++) {
-				score += omega.getScore(algn.getSequence(i).charAt(0), algn.getSequence(j).charAt(0));
-			}
+	private Alignment calculate(Alignment algn) {
+		
+		if(algn.getSeq(0)+algn.getSeq(1)+algn.getSeq(2) == "") {
+			algn.setScore(0.0);
+			return algn;
 		}
+		
+		if(algn.getSeq(0) == "") algn.setSeq(0, "_");
+		if(algn.getSeq(1) == "") algn.setSeq(1, "_");
+		if(algn.getSeq(2) == "") algn.setSeq(2, "_");
+		
+		double score = 0.0;
+		score += omega.getScore(algn.getSeq(0).charAt(0), algn.getSeq(1).charAt(0));
+		score += omega.getScore(algn.getSeq(0).charAt(0), algn.getSeq(2).charAt(0));
+		score += omega.getScore(algn.getSeq(1).charAt(0), algn.getSeq(2).charAt(0));
+		
+		LinkedList<Alignment> psblAlgn = new LinkedList<Alignment>();
+		double max = Double.NEGATIVE_INFINITY;
+		Alignment temp = new Alignment(algn);
+		temp.delFirst();												// 000
+		for(int i = 0; i < 7; i++) {
+			switch (i) {
+			case 1: temp.setSeq(1, "_" + temp.getSeq(1)); break; 		// _00
+			case 2: temp.setSeq(2, "_" + temp.getSeq(2)); break; 		// __0
+			case 3: temp.setSeq(1, temp.getSeq(1).substring(1)); break; // 0_0
+			case 4: temp.setSeq(3, "_" + temp.getSeq(3)); break; 		// 0__
+			case 5: temp.setSeq(2, temp.getSeq(2).substring(1)); break; // 00_
+			case 6: temp.setSeq(1, "_" + temp.getSeq(1)); break; 		// _0_
+			}
+			psblAlgn.add(new Alignment(calculate(temp)));
+			max = NeedlemanWunsch.maxValue(psblAlgn.get(i).getScore(), max);
+			
+		}
+		for(int i = 0; i < 7; i++)
+			if(psblAlgn.get(i).getScore() == max) {
+				psblAlgn.get(i).setScore(max + score);
+				return new Alignment(psblAlgn.get(i));
+			}
 		return algn;
 	}
 	
@@ -107,6 +132,8 @@ public class SumOfPairs extends BioinfAlgorithm {
 		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
 		
 		  // ##########  RUN THE PROGRAM  ###########
+		
+		alignment = calculate(sequences);
 
 		 // (JUST TO EXEMPLIFY SOME OUTPUT I REPORT THE INPUT PARAMETERS ...)
 		for (int i = 0; i < params.size(); i++) {
@@ -115,6 +142,8 @@ public class SumOfPairs extends BioinfAlgorithm {
 					+ " = "
 					+ params.elementAt(i).defVal.toString();
 		}
+		
+		retVal += ""+ alignment.toString();
 				
 		  // returning the algorithm results
 		return retVal;

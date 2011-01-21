@@ -16,7 +16,7 @@ public class Alignment {
 	public String[] matches;	// match/mismatch symbols
 	public double score;
 	
-	public void setSequence(int index, String seq) {
+	public void setSeq(int index, String seq) {
 		if(index >= sequences.length || index <= 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		sequences[index] = seq;
@@ -34,7 +34,7 @@ public class Alignment {
 		return names[index];
 	}
 	
-	public String getSequence(int index) {
+	public String getSeq(int index) {
 		if(index >= sequences.length || index <= 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		return sequences[index];
@@ -60,7 +60,7 @@ public class Alignment {
 		names = new String[seqCount];
 		sequences = new String[seqCount];
 		matches = new String[seqCount-1];
-		score = 0;
+		score = 0.0;
 		sequences[0] = ""; names[0] = "";
 		for(int i=1; i<seqCount; i++) {
 			names[i] = ""; sequences[i] = ""; matches[i-1] = "";
@@ -76,9 +76,11 @@ public class Alignment {
 		matches = new String[algn.sequences.length-1];
 		sequences[0] = new String(algn.sequences[0]);
 		for(int i=1; i<algn.sequences.length; i++) {
-			sequences[i] = new String(algn.sequences[i]);
+			sequences[i] = new String(algn.getSeq(i));
 			matches[i-1] = new String(algn.matches[i-1]);
 		}
+		score = algn.getScore();
+		
 	}
 	
 	/**
@@ -121,6 +123,12 @@ public class Alignment {
 			matches[i-1] = matches[i-1] + matchColumn[i-1];
 		}
 		return this;
+	}
+	
+	public void delFirst() {
+		for(int i = 0; i <= sequences.length; i++)
+			if(sequences[i].length() > 0) 
+				sequences[i] = sequences[i].substring(1);
 	}
 	
 	/**

@@ -97,14 +97,14 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return algnmts.getFirst();
 	}
 	
-	public double maxValue(double... value) {
+	public static double maxValue(double... value) {
 		double max = Double.NEGATIVE_INFINITY;
 		for(int i = 0; i < value.length; i++)
 			if(max < value[i]) max = value[i];
 		return max;
 	}
 	
-	public int maxIndex(double... value) {
+	public static int maxIndex(double... value) {
 		double max = 0;
 		int index = 0;
 		for(int i = 0; i < value.length; i++)
