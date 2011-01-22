@@ -35,8 +35,20 @@ public class SumOfPairs extends BioinfAlgorithm {
 				"Sequence 1"
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
-				, StringList.class
-				, "CLEMENS"));
+				, String.class
+				, "ABCE"));
+		super.parameters.add(new AlgorithmParameter(	
+				"Sequence 1"
+				, "A first sequence of the amino acid alphabet with the length " +
+						"1-128 characters is required." 
+				, String.class
+				, "ABDE"));
+		super.parameters.add(new AlgorithmParameter(	
+				"Sequence 1"
+				, "A first sequence of the amino acid alphabet with the length " +
+						"1-128 characters is required." 
+				, String.class
+				, "BDEE"));
 		super.parameters.add(new AlgorithmParameter(
 				"PAM / BLOSUM"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
@@ -60,7 +72,6 @@ public class SumOfPairs extends BioinfAlgorithm {
 		return new String("Sum-Of-Pairs");
 	}
 	
-
 	@Override
 	public String getDescription() {
 		return new String("Implemenation of the Sum-Of-Pairs approach " +
@@ -69,43 +80,82 @@ public class SumOfPairs extends BioinfAlgorithm {
 	
 	private Alignment calculate(Alignment algn) {
 		
-		if(algn.getSeq(0)+algn.getSeq(1)+algn.getSeq(2) == "") {
+		if(algn.getSeq(0).length() == 0) algn.setSeq(0, "_");
+		if(algn.getSeq(1).length() == 0) algn.setSeq(1, "_");
+		if(algn.getSeq(2).length() == 0) algn.setSeq(2, "_");
+		
+		if((algn.getSeq(0) == "_" && algn.getSeq(1) == "_") ||
+				(algn.getSeq(0) == "_" && algn.getSeq(2) == "_") ||
+				(algn.getSeq(1) == "_" && algn.getSeq(2) == "_")) {
+//			System.out.println("\n"+algn.toString());
 			algn.setScore(0.0);
 			return algn;
 		}
 		
-		if(algn.getSeq(0) == "") algn.setSeq(0, "_");
-		if(algn.getSeq(1) == "") algn.setSeq(1, "_");
-		if(algn.getSeq(2) == "") algn.setSeq(2, "_");
+		if(algn.getSeq(0).charAt(0) == '_' && algn.getSeq(1).charAt(0) == '_' && algn.getSeq(2).charAt(0) == '_') return algn;
+		
+		LinkedList<Alignment> psblAlgn = new LinkedList<Alignment>();
+		double max = Double.NEGATIVE_INFINITY;
+		Alignment temp = new Alignment(algn);
+		temp.delFirst();
+		psblAlgn.add(new Alignment(calculate(temp)));					// 000
+		if(!temp.getSeq(0).isEmpty()) {
+			temp.setSeq(0, "_" + temp.getSeq(0));
+			psblAlgn.add(new Alignment(calculate(temp)));				// 100
+		}
+		if(!temp.getSeq(0).isEmpty() && !temp.getSeq(1).isEmpty()) {
+			temp.setSeq(1, "_" + temp.getSeq(1));
+			psblAlgn.add(new Alignment(calculate(temp)));				// 110
+		}
+		if(!temp.getSeq(1).isEmpty() && !temp.getSeq(0).isEmpty()) {
+			temp.setSeq(0, temp.getSeq(0).substring(1));
+			psblAlgn.add(new Alignment(calculate(temp)));				// 010
+		}
+		if(!temp.getSeq(1).isEmpty() && !temp.getSeq(2).isEmpty()) {
+			temp.setSeq(2, "_" + temp.getSeq(2));
+			psblAlgn.add(new Alignment(calculate(temp)));				// 011
+		}
+		if(!temp.getSeq(2).isEmpty() && !temp.getSeq(1).isEmpty()) {
+			temp.setSeq(1, temp.getSeq(1).substring(1));
+			psblAlgn.add(new Alignment(calculate(temp)));				// 001
+		}
+		if(!temp.getSeq(0).isEmpty() && !temp.getSeq(2).isEmpty()) {
+			temp.setSeq(0, "_" + temp.getSeq(0));
+			psblAlgn.add(new Alignment(calculate(temp)));				// 101
+		}
+		
+		for(int i = 0; i < psblAlgn.size(); i++)
+			if(max < psblAlgn.get(i).getScore()) max = psblAlgn.get(i).getScore();
+		System.out.println("\n Max: "+ max);
+		
+//		for(int i = 0; i < 7; i++) {
+//			switch (i) {
+//			case 1: temp.setSeq(0, "_" + temp.getSeq(0)); break; 		// _00
+//			case 2: temp.setSeq(1, "_" + temp.getSeq(1)); break; 		// __0
+//			case 3: temp.setSeq(0, temp.getSeq(0).substring(1)); break; // 0_0
+//			case 4: temp.setSeq(2, "_" + temp.getSeq(2)); break; 		// 0__
+//			case 5: temp.setSeq(1, temp.getSeq(1).substring(1)); break; // 00_
+//			case 6: temp.setSeq(0, "_" + temp.getSeq(0)); break; 		// _0_
+//			}
+//			psblAlgn.add(new Alignment(calculate(temp)));
+//			max = NeedlemanWunsch.maxValue(psblAlgn.get(i).getScore(), max);
+//		}
 		
 		double score = 0.0;
 		score += omega.getScore(algn.getSeq(0).charAt(0), algn.getSeq(1).charAt(0));
 		score += omega.getScore(algn.getSeq(0).charAt(0), algn.getSeq(2).charAt(0));
 		score += omega.getScore(algn.getSeq(1).charAt(0), algn.getSeq(2).charAt(0));
-		
-		LinkedList<Alignment> psblAlgn = new LinkedList<Alignment>();
-		double max = Double.NEGATIVE_INFINITY;
-		Alignment temp = new Alignment(algn);
-		temp.delFirst();												// 000
-		for(int i = 0; i < 7; i++) {
-			switch (i) {
-			case 1: temp.setSeq(1, "_" + temp.getSeq(1)); break; 		// _00
-			case 2: temp.setSeq(2, "_" + temp.getSeq(2)); break; 		// __0
-			case 3: temp.setSeq(1, temp.getSeq(1).substring(1)); break; // 0_0
-			case 4: temp.setSeq(3, "_" + temp.getSeq(3)); break; 		// 0__
-			case 5: temp.setSeq(2, temp.getSeq(2).substring(1)); break; // 00_
-			case 6: temp.setSeq(1, "_" + temp.getSeq(1)); break; 		// _0_
-			}
-			psblAlgn.add(new Alignment(calculate(temp)));
-			max = NeedlemanWunsch.maxValue(psblAlgn.get(i).getScore(), max);
-			
-		}
-		for(int i = 0; i < 7; i++)
+
+		for(int i = 0; i < psblAlgn.size(); i++)
 			if(psblAlgn.get(i).getScore() == max) {
+				if(algn.getSeq(0).charAt(0) == '*' && algn.getSeq(1).charAt(0) == '*' && algn.getSeq(2).charAt(0) == '*')
+					return new Alignment(psblAlgn.get(i));
 				psblAlgn.get(i).setScore(max + score);
-				return new Alignment(psblAlgn.get(i));
+				char[] seqColumn = {algn.getSeq(0).charAt(0), algn.getSeq(1).charAt(0), algn.getSeq(2).charAt(0)};
+				char[] matchColumn = {' ', ' '};
+				return new Alignment(psblAlgn.get(i).addFirst(seqColumn, matchColumn));
 			}
-		return algn;
+		return temp;
 	}
 	
 	/**
@@ -123,9 +173,12 @@ public class SumOfPairs extends BioinfAlgorithm {
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
 		//TODO Parse input for errors!!!
-		String sequenceString = (String) params.elementAt(0).data;
-		usePAM = (Boolean) params.elementAt(1).data;
-		gapCosts = (Double) params.elementAt(2).data;
+		sequences = new Alignment(3);
+		sequences.setSeq(0, "*"+(String) params.elementAt(0).data);
+		sequences.setSeq(1, "*"+(String) params.elementAt(1).data);
+		sequences.setSeq(2, "*"+(String) params.elementAt(2).data);
+		usePAM = (Boolean) params.elementAt(3).data;
+		gapCosts = (Double) params.elementAt(4).data;
 		
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		
@@ -134,6 +187,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 		  // ##########  RUN THE PROGRAM  ###########
 		
 		alignment = calculate(sequences);
+		alignment.makeConnections();
 
 		 // (JUST TO EXEMPLIFY SOME OUTPUT I REPORT THE INPUT PARAMETERS ...)
 		for (int i = 0; i < params.size(); i++) {
@@ -143,7 +197,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 					+ params.elementAt(i).defVal.toString();
 		}
 		
-		retVal += ""+ alignment.toString();
+		retVal += "\n\n"+ alignment.toString();
 				
 		  // returning the algorithm results
 		return retVal;

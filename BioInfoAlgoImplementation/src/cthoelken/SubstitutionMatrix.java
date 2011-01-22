@@ -146,6 +146,7 @@ public class SubstitutionMatrix {
      * @return Score of the match/mismatch
      */
     public double getScore(char a1, char a2) {
+    	if(a1 == '_' && a2 == '_') return 0.0;
     	return getScore(getIndex(a1), getIndex(a2));  	// call by index
     }
     

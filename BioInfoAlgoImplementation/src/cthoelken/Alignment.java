@@ -17,25 +17,25 @@ public class Alignment {
 	public double score;
 	
 	public void setSeq(int index, String seq) {
-		if(index >= sequences.length || index <= 0)
+		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		sequences[index] = seq;
 	}
 	
 	public void setName(int index, String name) {
-		if(index >= sequences.length || index <= 0)
+		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		names[index] = name;
 	}
 	
 	public String getName(int index) {
-		if(index >= sequences.length || index <= 0)
+		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		return names[index];
 	}
 	
 	public String getSeq(int index) {
-		if(index >= sequences.length || index <= 0)
+		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		return sequences[index];
 	}
@@ -46,6 +46,26 @@ public class Alignment {
 	
 	public void setScore(Double score) {
 		this.score = score;
+	}
+	
+	public void makeConnections() {
+		matches = new String[matches.length];
+		int index = 0;
+		int finishedSeq = 0;
+		String temp = " ";
+		while(finishedSeq < matches.length) {
+			for(int i = 0; i < matches.length; i++) {
+				if(index == 0) matches[i] = "";
+				if(index < sequences[i].length() && index < sequences[i+1].length()) {
+					temp = ".";
+					if(sequences[i].charAt(index) == sequences[i+1].charAt(index)) temp = "|";
+					if(sequences[i].charAt(index) == '_' || sequences[i+1].charAt(index) == '_') temp = " ";
+					matches[i] = matches[i] + "" + temp;
+				}
+				if(sequences[i].length() == index+1) finishedSeq++;
+			}
+			index++;
+		}
 	}
 	
 	/**
@@ -126,7 +146,7 @@ public class Alignment {
 	}
 	
 	public void delFirst() {
-		for(int i = 0; i <= sequences.length; i++)
+		for(int i = 0; i < sequences.length; i++)
 			if(sequences[i].length() > 0) 
 				sequences[i] = sequences[i].substring(1);
 	}

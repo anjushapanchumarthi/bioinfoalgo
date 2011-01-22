@@ -254,19 +254,16 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		match[0] = ' ';
 		
 		if(psbl[0] == 1) {
-			System.out.println("\n I go left");
 			column[0] = seq1.charAt(x); column[1] = '_'; 
 			backtrack(x-1, y, algn.addFirst(column, match));
 		}
 		if(psbl[1] == 1) {
-			System.out.println("\n I go right");
 			column[0] = '_'; column[1] = seq2.charAt(y);
 			backtrack(x, y-1, algn.addFirst(column, match));
 		}
 		if(psbl[2] == 1) {
-			System.out.println("\n I go diagonally");
 			column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
-			match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
+			match[0] = (seq1.toUpperCase().charAt(x) == seq2.toUpperCase().charAt(y)) ? '|' : '*';
 			backtrack(x-1, y-1, algn.addFirst(column, match));
 		}
 	}
