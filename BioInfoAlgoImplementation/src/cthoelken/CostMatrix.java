@@ -68,7 +68,7 @@ public class CostMatrix {
 		if(x < 0 || y < 0 || z < 0 || 
 				x >= m.length || y >= m[0].length || z >= m[0][0].length)
 			throw new InvalidParameterException("Index not feasable! x="+x+" y="+y+" z="+z);
-		m[x][y][z] = value;
+		m[x][y][z] = new Double(value);
 	}
 	
 	/**
