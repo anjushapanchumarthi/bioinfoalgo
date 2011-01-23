@@ -122,15 +122,12 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		// fill the cost matrix row-wise
 		for(int i=0; i<seq1.length(); i++) {
 			for(int j=0; j<seq2.length(); j++) {
-				if(!(i==0 && j==0)) {
-					// calculate the three previous cells					
+				if(!(i==0 && j==0))					
 					M.set(i, j, maxValue(M.get(i, j-1) + gapCosts,
 							M.get(i-1, j) + gapCosts, M.get(i-1, j-1)
 							+ omega.getScore(seq1.charAt(i), seq2.charAt(j))));
-				}
 			}
 		}
-		//seq1 = seq1.substring(1); seq2 = seq2.substring(1);
 		return M.score();
 	}
 	
