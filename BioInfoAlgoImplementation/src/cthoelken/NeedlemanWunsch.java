@@ -117,26 +117,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 	
 	private double calculate() {
 		
-		double top = 0;		//score from above
-		double left = 0;		//score from left
-		double diagonal = 0;	//score diagonally (top-left)
-		double max;			//temporary maximum score
 		seq1 = "#" + seq1; seq2 = "#" + seq2; //increase sequence length, disregarded afterwards
 		
 		// fill the cost matrix row-wise
 		for(int i=0; i<seq1.length(); i++) {
 			for(int j=0; j<seq2.length(); j++) {
 				if(!(i==0 && j==0)) {
-					// calculate the three previous cells
-					top = M.get(i, j-1) + omega.getScore(seq1.charAt(i), '_');
-					left = M.get(i-1, j) + omega.getScore('_', seq2.charAt(j));
-					diagonal = M.get(i-1, j-1)
-							+ omega.getScore(seq1.charAt(i), seq2.charAt(j));
-					
-					max = top;						// take
-					if(max<left) max = left;		// the
-					if(max<diagonal) max = diagonal;// maximum
-					
+					// calculate the three previous cells					
 					M.set(i, j, maxValue(M.get(i, j-1) + gapCosts,
 							M.get(i-1, j) + gapCosts, M.get(i-1, j-1)
 							+ omega.getScore(seq1.charAt(i), seq2.charAt(j))));
@@ -201,7 +188,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 	
 	private void backtrack(int x, int y, Alignment algn) {
 		
-		System.out.println("backtrack: x="+x+" y="+y);
+//		System.out.println("backtrack: x="+x+" y="+y);
 		
 		if(x < 0 || y < 0) return;	// we are out of bounds, shouldn't happen
 		
@@ -212,7 +199,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 //			column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
 //			match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
 //			algnmts.add(algn.addFirst(column, match));
-			System.out.println("All is good!");
+//			System.out.println("All is good!");
 			algnmts.add(algn);
 			return;
 		}
@@ -231,7 +218,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		if(M.get(x, y) == M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y)))
 			psbl[2] = 1;
 		
-		System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
+//		System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
 		
 		int num_psbl = psbl[0]+psbl[1]+psbl[2];
 		if(randomBackTrace && num_psbl > 1) {
@@ -248,7 +235,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 					} else { psbl[0] = random; psbl[2] = 1-random; }
 				} else { psbl[1] = random; psbl[2] = 1-random; }
 			}
-			System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
+//			System.out.println("\n "+psbl[0]+""+psbl[1]+""+psbl[2]); //TODO
 		}
 		
 		match[0] = ' ';

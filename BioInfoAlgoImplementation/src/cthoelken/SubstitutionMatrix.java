@@ -150,4 +150,9 @@ public class SubstitutionMatrix {
     	return getScore(getIndex(a1), getIndex(a2));  	// call by index
     }
     
+    public double getScore(char a1, char a2, char a3) {
+    	if(a1 == '_' && a2 == '_' && a3 == '_') return 0.0;
+    	return getScore(a1, a2) + getScore(a1, a3) + getScore(a2, a3);	
+    }
+    
 }
