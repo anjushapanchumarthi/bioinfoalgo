@@ -3,9 +3,7 @@ package cthoelken;
 import gui.AlgorithmParameter;
 import gui.BioinfAlgorithm;
 import gui.StringList;
-
 import java.util.LinkedList;
-import java.util.Random;
 import java.util.Vector;
 
  /**
@@ -17,10 +15,10 @@ import java.util.Vector;
   */
 public class PGMA extends BioinfAlgorithm {
 
-	private String sequenceData;
-	private Boolean usePAM;
-	private Boolean weighted;
-	private Integer gapCosts;
+	private Alignment sequences;
+	private boolean usePAM;
+	private boolean weighted;
+	private double gapCosts;
 
 
 	/**
@@ -30,14 +28,14 @@ public class PGMA extends BioinfAlgorithm {
 	public PGMA() { 
 		// create additional parameters for the algorithm to work.
 		super.parameters.add(new AlgorithmParameter(
-				"PAM / BLOSUM"
-				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
+				"Sequences"
+				, "Enter Sequences in FASTA format." 
 				, StringList.class 
-				, new StringList("\n\n;Kommentar 1 \nABADEREAGEERGAA\n>" +
+				, new StringList("\n\n;Kommentar 1 \n>" +
 						"Sequence 1 [Die Schwarmm�ücke] \"Plutonium Maximum\"" +
-						"\n;Kommentar2\n\nABCDEFG\nABCDFGE\nABDGFEC\n>" +
-						"Sequence 2\nABGEFGFEGEFCEG\nG*\n>Sequnce 3\n" +
-						"ABGEGEGEGEGEGEGEG\n!Kommentar 3\nAGEGEGEGE**")));
+						"\n;Kommentar2\nABCDEF\n>" +
+						"Sequence 2\nABGEFGGGGGGGGGGGGGG\nG*\n>Sequnce 3\n" +
+						"ABGDEF\n>Sequence 4\nABDEFGGGGGGG")));
 		super.parameters.add(new AlgorithmParameter(
 				"Weighted / Unweighted"
 				, "Choose YES to use WEIGHTED or NO to use UNWEIGHTED pairing." 
@@ -72,9 +70,87 @@ public class PGMA extends BioinfAlgorithm {
 		return super.parameters;
 	}
 	
-	public Alignment parseFasta(String fasta) {
-		Alignment algn = new Alignment(2);
+	public static Alignment parseFasta(StringList fasta) {
+		String[] lines = fasta.toString().split("\n");
+		LinkedList<String> names = new LinkedList<String>();
+		LinkedList<String> sequences = new LinkedList<String>();
+		String temp = "";
+
+		for(int i = 0; i < lines.length; i++) {
+			if(lines[i].length() > 0) {
+				if(lines[i].charAt(0) == ';') {	
+				} else if(lines[i].charAt(0) == '>' && names.size() == sequences.size()) {
+					names.add(lines[i].substring(1));
+				} else if(names.size()-1 == sequences.size()) {
+					temp += lines[i];
+					if(lines[i].charAt(lines[i].length()-1) == '*') {
+						sequences.add(temp.substring(0, temp.length()-1));
+						temp = "";
+					} else if(i+1 == lines.length) {
+						sequences.add(temp);
+						temp = "";
+					} else if(lines[i+1].charAt(0) == '>' || lines[i+1].length() == 0) {
+						sequences.add(temp);
+						temp = "";
+					}
+				} else throw new IllegalArgumentException("Line "+i
+						+" is not a valid formated according to FASTA!");
+			}
+		}
+		
+		Alignment algn = new Alignment(names.size());
+		for(int i = 0; i < names.size(); i++) {
+			algn.setName(i, names.get(i));
+			for(int j = 0; j < sequences.get(i).length(); j++)
+				if(new SubstitutionMatrix().getScore(sequences.get(i).charAt(j), sequences.get(i).charAt(j)) < 0)
+					throw new IllegalArgumentException("\""
+							+ sequences.get(i).charAt(j)
+							+ "\" is not a valid amino acid in sequence "+i
+							+ " at position "+(j+1)+"!");
+			algn.setSeq(i, sequences.get(i));
+		}
+
 		return algn;
+	}
+	
+	public Cluster calculate(Alignment sequences, boolean usePAM, boolean weighted, double gapCosts) {
+		this.sequences = sequences; this.usePAM = usePAM; 
+		this.weighted = weighted; this.gapCosts = gapCosts;
+		return calculate();
+	}
+	
+	/**
+	 * @return
+	 */
+	private Cluster calculate() {
+		CostMatrix D = new CostMatrix(sequences.size(), sequences.size());
+		
+		LinkedList<Cluster> nodes = new LinkedList<Cluster>();
+		
+		for(int i = 0; i < sequences.size(); i++)
+			nodes.add(new Cluster(i, sequences.getSeq(i)));
+		
+		while(nodes.size() > 1) {
+			double min = Double.POSITIVE_INFINITY;
+			int iMin = 0; int jMin = 1;
+
+			for(int i = 0; i < nodes.size(); i++) {
+				for(int j = i+1; j < nodes.size(); j++) {
+					D.set(i, j, nodes.get(i).distance(nodes.get(j), weighted, usePAM, gapCosts));
+					if(min > D.get(i, j)) {
+						min = D.get(i, j);
+						iMin = i; jMin = j;
+					}
+				}
+			}
+
+			Cluster temp = new Cluster(nodes.get(iMin), nodes.get(jMin), D.get(iMin, jMin));
+			nodes.remove(iMin); nodes.remove(jMin-1);
+			nodes.add(temp);
+		}
+		
+		return nodes.get(0);
+				
 	}
 	
 	/**
@@ -84,6 +160,9 @@ public class PGMA extends BioinfAlgorithm {
 	 * 
 	 * @return Output string containing the used parameters, the results and errors.
 	 */
+	/* (non-Javadoc)
+	 * @see gui.BioinfAlgorithm#run(java.util.Vector)
+	 */
 	@Override
 	public String run(Vector<AlgorithmParameter> params) {
 		
@@ -91,50 +170,19 @@ public class PGMA extends BioinfAlgorithm {
 		
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
-		//TODO Parse input for errors!!!
-		Alignment sequences = parseFasta((String) params.elementAt(0).data);
+		try{
+			sequences = PGMA.parseFasta((StringList) params.elementAt(0).data);
+		} catch(IllegalArgumentException e) {
+			return e.toString();
+		}
 		weighted = (Boolean) params.elementAt(1).data;
 		usePAM = (Boolean) params.elementAt(2).data;
 		gapCosts = (Integer) params.elementAt(3).data;
 		
 		  // ##########  RUN THE PROGRAM  ###########
 
-		 // (JUST TO EXEMPLIFY SOME OUTPUT I REPORT THE INPUT PARAMETERS ...)
-		for (int i = 0; i < params.size(); i++) {
-			retVal	+= "\n Input : "
-					+ params.elementAt(i).name
-					+ " = "
-					+ params.elementAt(i).defVal.toString();
-		}
-		
-		CostMatrix D = new CostMatrix(sequences.size(), sequences.size());
-		NeedlemanWunsch nw = new NeedlemanWunsch();
-		int[] bestPair = new int[2];
-		int[] ranks = new int[sequences.size()];
-		double max = 0;
-		
-		for(int i = 0; i <= sequences.size(); i++) {
-			ranks[i] = sequences.size();
-			for(int j = i+1; j <= sequences.size()-1; i++) {
-				D.set(i, j, (int) nw.getScore(sequences.getSeq(i), 
-						sequences.getSeq(j), usePAM, gapCosts));
-				if(D.get(i, j) > max && i != j) {
-					max = D.get(i, j);
-					bestPair[0] = i; bestPair[1] = j;
-				}
-			}
-		}
-		
-		ranks[bestPair[0]] = 0; ranks[bestPair[1]] = 0;
-		for(int k = 0; k <= sequences.size(); k++) {
-			//TODO Hab keinen Schimmer was ich hier noch machen will
-		}
-		
-		boolean notFinished = true;
-		while(notFinished) {
-			
-		}
-		
+		retVal += "\n" + calculate().toString();
+
 		return retVal;
 	}
 	
@@ -147,7 +195,7 @@ public class PGMA extends BioinfAlgorithm {
 	 */
 	public static void main(String[] args) {
 		  // create an instance of this class
-		Gotoh myInstance = new Gotoh();
+		PGMA myInstance = new PGMA();
 		  // run the example the instance with the default parameters
 		BioinfAlgorithm.runAlgorithmDefaults( myInstance );
 	}
