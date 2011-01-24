@@ -2,13 +2,11 @@ package cthoelken;
 
 import gui.AlgorithmParameter;
 import gui.BioinfAlgorithm;
-
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Vector;
 
  /**
-  * Implementation of the Needleman Wunsch Algorithm for pairwise alignments
+  * Implementation of the Sum-Of-Pairs Algorithm for optimal multiple alignments
   * with linear gap costs.
   * 
   * @author Clemens Thoelken
@@ -87,6 +85,12 @@ public class SumOfPairs extends BioinfAlgorithm {
 				"to multiple alignment with the help of dynamic programming.");
 	}
 	
+	/** Scores a pre-aligned alignment based on SOP-Score
+	 * @param algn Pre-aligned alignment of same lenght sequences
+	 * @param usePAM Use PAM for substitution
+	 * @param gapCosts Gap costs for the alignment
+	 * @return Returns the total score
+	 */
 	public static double score(Alignment algn, boolean usePAM, double gapCosts) {
 		SubstitutionMatrix omega = new SubstitutionMatrix(usePAM, gapCosts);
 		double score = 0;
@@ -100,6 +104,9 @@ public class SumOfPairs extends BioinfAlgorithm {
 		return score;
 	}
 	
+	/** Fills the CostMatrix with values and returns the optimal score
+	 * @return Optimal Score
+	 */
 	private double score() {
 		seq1 = "#" + seq1; seq2 = "#" + seq2; seq3 = "#" + seq3; //increase sequence length, disregarded afterwards
 		M = new CostMatrix(seq1.length(), seq2.length(), seq3.length());
@@ -123,7 +130,6 @@ public class SumOfPairs extends BioinfAlgorithm {
 						score[6] = M.get(x, y, z-1) + 2*gapCosts;		// __1
 
 						M.set(x, y, z, new Double(NeedlemanWunsch.maxValue(score[0], score[1], score[2], score[3], score[4], score[5], score[6])));
-						System.out.println("M["+(x)+"]["+(y)+"]["+(z)+"]="+M.get(x, y, z));
 					}
 				}
 			}
@@ -131,6 +137,12 @@ public class SumOfPairs extends BioinfAlgorithm {
 		return M.score();
 	}
 	
+	/** Backtracks the CostMatrix for feasable paths and adds them to the internal alignment list
+	 * @param x x-offset
+	 * @param y y-offset
+	 * @param z z-offset
+	 * @param algn Initial alignment, starts with an empty alignment
+	 */
 	private void backtrack(int x, int y, int z, Alignment algn) {
 		if(x < 0 || y < 0 || z < 0) return;
 		
@@ -138,8 +150,6 @@ public class SumOfPairs extends BioinfAlgorithm {
 			algnmts.add(algn);
 			return;
 		}
-		
-		System.out.println("M["+(x-1)+"]["+(y-1)+"]["+(z-1)+"]="+M.get(x, y, z));
 		
 		int[] psbl = {0, 0, 0, 0, 0, 0, 0};
 		if(M.get(x, y, z) == M.get(x-1, y-1, z-1) 
@@ -160,8 +170,6 @@ public class SumOfPairs extends BioinfAlgorithm {
 			psbl[5] = 1;
 		if(M.get(x, y, z) == M.get(x, y, z-1) + 2*gapCosts)
 			psbl[6] = 1;
-		
-		System.out.println(Arrays.toString(psbl));
 		
 		char[] column = new char[3];
 		char[] match = new char[2];
@@ -253,12 +261,9 @@ public class SumOfPairs extends BioinfAlgorithm {
 		
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		
-		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
-		
 		  // ##########  RUN THE PROGRAM  ###########
 		
 		System.out.println("\nScore: "+score());
-		System.out.println(M.toString());
 		
 		backtrack(seq1.length()-1, seq2.length()-1, seq3.length()-1, new Alignment(3));
 		

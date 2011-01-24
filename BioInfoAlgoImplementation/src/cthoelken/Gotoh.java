@@ -45,6 +45,9 @@ public class Gotoh extends NeedlemanWunsch {
 				+ "programming.");
 	}
 
+	/** Fills the CostMatrices with values
+	 * @return The score for the overall alignment
+	 */
 	private double calculate() {
 
 		seq1 = "#" + seq1;
@@ -76,9 +79,12 @@ public class Gotoh extends NeedlemanWunsch {
 		return M.score();
 	}
 
+	/** Backtracks the CostMatrix and finds feasable paths
+	 * @param x x-offset
+	 * @param y y-offset
+	 * @param algn The alignment so far, started with an empty alignment
+	 */
 	private void backtrack(int x, int y, Alignment algn) {
-
-		System.out.println("backtrack: x=" + x + " y=" + y);
 
 		if (x < 0 || y < 0)
 			return; // we are out of bounds, shouldn't happen
@@ -86,19 +92,12 @@ public class Gotoh extends NeedlemanWunsch {
 		char[] column = new char[2];
 		char[] match = new char[1];
 
-		if (x == 0 && y == 0) { // we are done, great!
-		// column[0] = seq1.charAt(x); column[1] = seq2.charAt(y);
-		// match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
-		// algnmts.add(algn.addFirst(column, match));
-			System.out.println("All is good!");
+		if (x == 0 && y == 0) {
 			algnmts.add(algn);
 			return;
 		}
 
 		int[] psbl = { 0, 0, 0 };
-
-		System.out.println("\n M(x,y) = " + M.get(x, y) + " - M(x,y-1) = "
-				+ M.get(x, y - 1) + " - SEQ2: " + seq2.charAt(y)); // TODO
 
 		// insertion
 		if (M.get(x, y) == H.get(x, y)) psbl[0] = 1;
@@ -110,8 +109,6 @@ public class Gotoh extends NeedlemanWunsch {
 		if (M.get(x, y) == M.get(x - 1, y - 1)
 				+ omega.getScore(seq1.charAt(x), seq2.charAt(y)))
 			psbl[2] = 1;
-
-		System.out.println("\n " + psbl[0] + "" + psbl[1] + "" + psbl[2]); // TODO
 
 		int num_psbl = psbl[0] + psbl[1] + psbl[2];
 		if (randomBackTrace && num_psbl > 1) {
@@ -137,25 +134,21 @@ public class Gotoh extends NeedlemanWunsch {
 					psbl[2] = 1 - random;
 				}
 			}
-			System.out.println("\n " + psbl[0] + "" + psbl[1] + "" + psbl[2]); // TODO
 		}
 
 		match[0] = ' ';
 
 		if (psbl[0] == 1) {
-			System.out.println("\n I go left");
 			column[0] = seq1.charAt(x);
 			column[1] = '_';
 			backtrack(x - 1, y, algn.addFirst(column, match));
 		}
 		if (psbl[1] == 1) {
-			System.out.println("\n I go right");
 			column[0] = '_';
 			column[1] = seq2.charAt(y);
 			backtrack(x, y - 1, algn.addFirst(column, match));
 		}
 		if (psbl[2] == 1) {
-			System.out.println("\n I go diagonally");
 			column[0] = seq1.charAt(x);
 			column[1] = seq2.charAt(y);
 			match[0] = (seq1.charAt(x) == seq2.charAt(y)) ? '|' : '*';
@@ -192,23 +185,9 @@ public class Gotoh extends NeedlemanWunsch {
 		H = new CostMatrix(seq1.length() + 1, seq2.length() + 1);
 		V = new CostMatrix(seq1.length() + 1, seq2.length() + 1);
 
-		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
-
 		// ########## RUN THE PROGRAM ###########
 
-		// (JUST TO EXEMPLIFY SOME OUTPUT I REPORT THE INPUT PARAMETERS ...)
-		for (int i = 0; i < params.size(); i++) {
-			retVal += "\n Input : " + params.elementAt(i).name + " = "
-					+ params.elementAt(i).defVal.toString();
-		}
-
 		retVal += "\n Maximal Score: " + calculate();
-
-		// print final cost matrix to console VERBOSE!!!
-		// TODO add to return string!!!
-		System.out.println(M.toString());
-		System.out.println(H.toString());
-		System.out.println(V.toString());
 
 		backtrack(seq1.length() - 1, seq2.length() - 1, new Alignment(2));
 
@@ -218,8 +197,6 @@ public class Gotoh extends NeedlemanWunsch {
 					+ algnmts.get(k).toString();
 
 		// returning the algorithm results
-		System.out.println("######################\n"
-				+ omega.getScore('b', 'b'));
 		return retVal;
 	}
 

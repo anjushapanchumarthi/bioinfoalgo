@@ -81,6 +81,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				"to pairwise alignment with the help of dynamic programming.");
 	}
 	
+	/** Get the score of two Strings from external algorithms
+	 * @param s1 Sequence string 1
+	 * @param s2 sequence string 2
+	 * @param usePAM Use PAM for substitution
+	 * @param gapCosts Gap costs for the alignment
+	 * @return Score of the alignment
+	 */
 	public double getScore(String s1, String s2, boolean usePAM, double gapCosts) {
 		seq1 = s1; seq2 = s2; this.usePAM = usePAM; this.gapCosts = gapCosts;
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
@@ -88,6 +95,13 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return calculate();
 	}
 	
+	/** Get the Alignment of two strings from external algorithms
+	 * @param s1 Sequence string 1
+	 * @param s2 sequence string 2
+	 * @param usePAM Use PAM for substitution
+	 * @param gapCosts Gap costs for the alignment
+	 * @return The actual alignment
+	 */
 	public Alignment getAlignment(String s1, String s2, boolean usePAM, double gapCosts) {
 		seq1 = s1; seq2 = s2; this.usePAM = usePAM; this.gapCosts = gapCosts;
 		randomBackTrace = true;
@@ -97,6 +111,10 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return algnmts.getFirst();
 	}
 	
+	/** Returns the maximum value of the double parameters
+	 * @param value Input double array
+	 * @return maximal input parameter
+	 */
 	public static double maxValue(double... value) {
 		double max = Double.NEGATIVE_INFINITY;
 		for(int i = 0; i < value.length; i++)
@@ -104,6 +122,10 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return max;
 	}
 	
+	/** Returns the index of the maximal double in the parameters
+	 * @param value Input double array
+	 * @return Index of the maximal input parameter
+	 */
 	public static int maxIndex(double... value) {
 		double max = 0;
 		int index = 0;
@@ -115,6 +137,9 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return index;
 	}
 	
+	/** Calculates the costmatrix
+	 * @return Returns the score of the alignment
+	 */
 	private double calculate() {
 		
 		seq1 = "#" + seq1; seq2 = "#" + seq2; //increase sequence length, disregarded afterwards
@@ -155,23 +180,10 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
 		
-		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
-		
 		  // ##########  RUN THE PROGRAM  ###########
-
-		 // (JUST TO EXEMPLIFY SOME OUTPUT I REPORT THE INPUT PARAMETERS ...)
-		for (int i = 0; i < params.size(); i++) {
-			retVal	+= "\n Input : "
-					+ params.elementAt(i).name
-					+ " = "
-					+ params.elementAt(i).defVal.toString();
-		}
 		
 		retVal += "\n Maximal Score: " + calculate();
 		
-		// print final cost matrix to console   VERBOSE!!!
-		//TODO add to return string!!!
-		System.out.println(M.toString());
 		
 		backtrack(seq1.length()-1, seq2.length()-1, new Alignment(2));
 		
@@ -183,6 +195,11 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return retVal;
 	}
 	
+	/** Backtracks the cost matrix for feasable paths
+	 * @param x x-offset
+	 * @param y y-offset
+	 * @param algn The alginment so far, starts with empty alignment
+	 */
 	private void backtrack(int x, int y, Alignment algn) {
 		
 		if(x < 0 || y < 0) return;	// we are out of bounds, shouldn't happen

@@ -70,6 +70,10 @@ public class PGMA extends BioinfAlgorithm {
 		return super.parameters;
 	}
 	
+	/** Parses an Alignment from a FASTA String with newlines
+	 * @param fasta Input string in FASTA format
+	 * @return Alignment with all sequences
+	 */
 	public static Alignment parseFasta(StringList fasta) {
 		String[] lines = fasta.toString().split("\n");
 		LinkedList<String> names = new LinkedList<String>();
@@ -113,14 +117,21 @@ public class PGMA extends BioinfAlgorithm {
 		return algn;
 	}
 	
+	/** Calculates a tree form a given alignment
+	 * @param sequences Input alignment with all sequences
+	 * @param usePAM Use PAM substitution
+	 * @param weighted Use WPGMA
+	 * @param gapCosts Gap costs for the calculation
+	 * @return Returns the tree as a cluster
+	 */
 	public Cluster calculate(Alignment sequences, boolean usePAM, boolean weighted, double gapCosts) {
 		this.sequences = sequences; this.usePAM = usePAM; 
 		this.weighted = weighted; this.gapCosts = gapCosts;
 		return calculate();
 	}
 	
-	/**
-	 * @return
+	/** Initialtizes all sequences into Clusters and slusters all untill only one Cluster is left
+	 * @return The resulting Cluster
 	 */
 	private Cluster calculate() {
 		CostMatrix D = new CostMatrix(sequences.size(), sequences.size());

@@ -6,7 +6,7 @@ import gui.StringList;
 import java.util.Vector;
 
  /**
-  * Implementation of the Needleman Wunsch Algorithm for pairwise alignments
+  * Implementation of the Feng-Doolittle Algorithm for progressive multiple alignments
   * with linear gap costs.
   * 
   * @author Clemens Thoelken

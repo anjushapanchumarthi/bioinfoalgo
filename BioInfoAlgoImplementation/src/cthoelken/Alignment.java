@@ -3,7 +3,7 @@ package cthoelken;
 import java.security.InvalidParameterException;
 
 /**
- * Object to keep all needed sequences, symbols for matches and mismatches 
+ * Object to keep 2 to n sequences, symbols for matches and mismatches 
  * between them and print out the alignment.
  * 
  * @author Clemens Thoelken
@@ -11,62 +11,86 @@ import java.security.InvalidParameterException;
  */
 public class Alignment {
 	
-	public String[] names;
-	public String[] sequences;
+	public String[] names;		// sequence names
+	public String[] sequences;	// sequence strings
 	public String[] matches;	// match/mismatch symbols
 	public double score;
 	
+	/** Sets a sequence at the given index to the defined string
+	 * @param index	The index of the Sequence
+	 * @param seq The sequence-string
+	 */
 	public void setSeq(int index, String seq) {
 		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		sequences[index] = seq;
 	}
 	
+	
+	/** Setter for the name of the sequence by index
+	 * @param index Index of the sequence
+	 * @param name The name string to be assigned to the sequence
+	 */
 	public void setName(int index, String name) {
 		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		names[index] = name;
 	}
 	
+	/** Getter for the name of the sequence by index
+	 * @param index Index of the sequence
+	 * @return The sequence's name
+	 */
 	public String getName(int index) {
 		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		return names[index];
 	}
 	
+	/** Getter for the sequences by index
+	 * @param index Index of the sequence
+	 * @return The sequence string
+	 */
 	public String getSeq(int index) {
 		if(index >= sequences.length || index < 0)
 			throw new IllegalArgumentException("Index out of bounds in Alignment");
 		return sequences[index];
 	}
 	
+	/** Returns the score of the alignment. This value is not necessarily computed!
+	 * @return The Score of the overall alignment
+	 */
 	public double getScore() {
 		return score;
 	}
 	
+	/** Setter for the score variable
+	 * @param score Value of the score to be assigned to the alignment
+	 */
 	public void setScore(Double score) {
 		this.score = score;
 	}
 	
-	public void makeConnections() {
-		matches = new String[matches.length];
-		int index = 0;
-		int finishedSeq = 0;
-		String temp = " ";
-		while(finishedSeq < matches.length) {
-			for(int i = 0; i < matches.length; i++) {
-				if(index == 0) matches[i] = "";
-				if(index < sequences[i].length() && index < sequences[i+1].length()) {
-					temp = ".";
-					if(sequences[i].charAt(index) == sequences[i+1].charAt(index)) temp = "|";
-					if(sequences[i].charAt(index) == '_' || sequences[i+1].charAt(index) == '_') temp = " ";
-					matches[i] = matches[i] + "" + temp;
-				}
-				if(sequences[i].length() == index+1) finishedSeq++;
-			}
-			index++;
-		}
-	}
+//	
+//	public void makeConnections() {
+//		matches = new String[matches.length];
+//		int index = 0;
+//		int finishedSeq = 0;
+//		String temp = " ";
+//		while(finishedSeq < matches.length) {
+//			for(int i = 0; i < matches.length; i++) {
+//				if(index == 0) matches[i] = "";
+//				if(index < sequences[i].length() && index < sequences[i+1].length()) {
+//					temp = ".";
+//					if(sequences[i].charAt(index) == sequences[i+1].charAt(index)) temp = "|";
+//					if(sequences[i].charAt(index) == '_' || sequences[i+1].charAt(index) == '_') temp = " ";
+//					matches[i] = matches[i] + "" + temp;
+//				}
+//				if(sequences[i].length() == index+1) finishedSeq++;
+//			}
+//			index++;
+//		}
+//	}
 	
 	/**
 	 * Constructor
@@ -151,8 +175,8 @@ public class Alignment {
 				sequences[i] = sequences[i].substring(1);
 	}
 	
-	/**
-	 * Pretty prints the Alignments including the sequences and match/mismatch between them.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
 		String retVal = "";
@@ -163,6 +187,10 @@ public class Alignment {
 		return retVal;
 	}
 
+	
+	/** Determines the number of sequences in this alignment
+	 * @return Returns the number of Sequences
+	 */
 	public int size() {
 		return sequences.length;
 	}

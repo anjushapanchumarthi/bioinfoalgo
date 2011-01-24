@@ -146,10 +146,16 @@ public class SubstitutionMatrix {
      * @return Score of the match/mismatch
      */
     public double getScore(char a1, char a2) {
-    	if(a1 == '_' && a2 == '_') return 0.0;
+    	if(a1 == '_' && a2 == '_' || a1 == '-' || a2 == '-') return 0.0;
     	return getScore(getIndex(a1), getIndex(a2));  	// call by index
     }
     
+    /** Retrieves the score for three amino acids
+     * @param a1 Amino acid 1
+     * @param a2 Amino acid 2
+     * @param a3 Amino acid 3
+     * @return Score of the match/mismatch
+     */
     public double getScore(char a1, char a2, char a3) {
     	if(a1 == '_' && a2 == '_' && a3 == '_') return 0.0;
     	return getScore(a1, a2) + getScore(a1, a3) + getScore(a2, a3);	

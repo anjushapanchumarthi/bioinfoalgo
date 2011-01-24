@@ -2,29 +2,52 @@ package cthoelken;
 
 import java.util.LinkedList;
 
+/** Auxilliary class for tree based clusters in UPGMA and WPGMA
+ * @author Clemens Thoelken
+ *
+ */
 public class Cluster {
 	
-	Cluster left, right;
-	int c;
-	String s;
-	double distance;
-	boolean weighted;
+	Cluster left, right;	// child nodes
+	int c;					// internal Integer of the sequence
+	String s;				// sequence String
+	double distance;		// distance (not really needed)
+	boolean weighted;		// true for WPGMA
 	
+	
+	/** Constructor for a node with two children
+	 * @param c1 Left child Cluster
+	 * @param c2 Right child Cluster
+	 * @param distance Distance between the two children
+	 */
 	Cluster(Cluster c1, Cluster c2, double distance) {
 		this.left = c1; this.right = c2;
 		this.distance = distance;
 		this.weighted = c1.weighted;
 	}
 	
+	/** Getter for WPGMA boolean
+	 * @return Returns whether WPGMA is used or not
+	 */
 	boolean isWeighted() {
 		return weighted;
 	}
 	
+	/** Checks whether the node is a leaf or not
+	 * @return Returns true if the node has no children
+	 */
 	boolean isLeaf() {
 		if(left == null) return true;
 		return false;
 	}
 	
+	/** Computes the distance between this cluster and another
+	 * @param cluster The other cluster
+	 * @param weighted Use WPGMA or not
+	 * @param usePAM Use PAM for substituionMatrix
+	 * @param gapCosts Gap costs for the calculation
+	 * @return Returns the inverted similarity score of the two clusters
+	 */
 	double distance(Cluster cluster, boolean weighted, boolean usePAM, double gapCosts) {
 		NeedlemanWunsch nw = new NeedlemanWunsch();
 		if(isLeaf() && cluster.isLeaf())
@@ -37,6 +60,10 @@ public class Cluster {
 		return (cluster.distance(left, weighted, usePAM, gapCosts)+cluster.distance(right, weighted, usePAM, gapCosts))/size();
 	}
 	
+	/** Recursively aligns the nodes of the cluster
+	 * @param usePAM Use PAM for substitution
+	 * @param gapCosts Gap costs for the calculation
+	 */
 	void align(boolean usePAM, double gapCosts) {
 		if(isLeaf()) return;
 
@@ -70,6 +97,10 @@ public class Cluster {
 					else right.getLeaves().get(j).s = right.getLeaves().get(j).s+"-";
 	}
 	
+	/** Generates an Alignment according to the trees ranking
+	 * @param algn Input alignment without any gaps
+	 * @return Output alignment with the sequence strings from the clustered tree
+	 */
 	public Alignment generateAlignment(Alignment algn) {
 		if(size() != algn.size()) throw new IllegalArgumentException("Cannot generate alignment if tree and alignment do not have the same size!");
 		for(int i = 0; i < left.size(); i++)
@@ -79,6 +110,9 @@ public class Cluster {
 		return algn;
 	}
 
+	/** Returns all leaf nodes from the tree
+	 * @return A List of the nodes
+	 */
 	private LinkedList<Cluster> getLeaves() {
 		LinkedList<Cluster> leaves = new LinkedList<Cluster>();
 		if(isLeaf()) {
@@ -93,16 +127,26 @@ public class Cluster {
 		return leaves;
 	}
 
-	double size() {
+	/** Returns the numer of trees in this tree
+	 * @return Number of leaf nodes
+	 */
+	int size() {
 		if(isLeaf()) return 1;
 		return left.size() + right.size();
 	}
 
+	/** Constructor for a leaf-node without children
+	 * @param content Internal Integer code for the Sequence
+	 * @param sequence The sequence's String
+	 */
 	Cluster(int content, String sequence) {
 		this.c = content;
 		this.s = sequence;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	public String toString() {
 		if(isLeaf()) return ""+c;
 		return "("+left.toString()+","+right.toString()+")";
