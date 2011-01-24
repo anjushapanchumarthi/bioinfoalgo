@@ -39,19 +39,19 @@ public class SumOfPairs extends BioinfAlgorithm {
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "ABCE"));
+				, "CLEMENS"));
 		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 1"
+				"Sequence 2"
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "ABDE"));
+				, "STEFFEN"));
 		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 1"
+				"Sequence 3"
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "BDEE"));
+				, "STEFFAN"));
 		super.parameters.add(new AlgorithmParameter(
 				"PAM / BLOSUM"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
@@ -67,7 +67,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 				"Gap costs"
 				, "A double for the constant gap costs used for scoring."
 				, Double.class 
-				, new Double(-4.0)));
+				, new Double(-1.0)));
 
 	}
 
@@ -87,26 +87,37 @@ public class SumOfPairs extends BioinfAlgorithm {
 				"to multiple alignment with the help of dynamic programming.");
 	}
 	
+	public static double score(Alignment algn, boolean usePAM, double gapCosts) {
+		SubstitutionMatrix omega = new SubstitutionMatrix(usePAM, gapCosts);
+		double score = 0;
+		for(int x = 0; x < algn.size(); x++) {
+			if(algn.getSeq(x).length() != algn.getSeq(0).length())
+				throw new IllegalArgumentException("Sequences in alignment are not of the same length!");
+			else for(int y = x+1; y < algn.size(); y++)
+				for(int z = 0; z < algn.getSeq(0).length(); z++)
+					score += omega.getScore(algn.getSeq(x).charAt(z), algn.getSeq(y).charAt(z));
+		}
+		return score;
+	}
+	
 	private double score() {
-		M = new CostMatrix(seq1.length()-1, seq2.length()-1, seq3.length()-1);
+		seq1 = "#" + seq1; seq2 = "#" + seq2; seq3 = "#" + seq3; //increase sequence length, disregarded afterwards
+		M = new CostMatrix(seq1.length(), seq2.length(), seq3.length());
 		double[] score = new double[7];
-		for(int x = 0; x < seq1.length()-1; x++) {
-			for(int y = 0; y < seq2.length()-1; y++) {
-				for(int z = 0; z < seq3.length()-1; z++) {
+		for(int x = 0; x < seq1.length(); x++) {
+			for(int y = 0; y < seq2.length(); y++) {
+				for(int z = 0; z < seq3.length(); z++) {
 					if(x+y+z != 0) {
 						score[0] = M.get(x-1, y-1, z-1) + omega.getScore(// 111
 								seq1.charAt(x), 
 								seq2.charAt(y), 
 								seq3.charAt(z));
 						score[1] = M.get(x-1, y-1, z) + omega.getScore(	// 11_
-								seq1.charAt(x), 
-								seq2.charAt(y)) + 2*gapCosts;
+								seq1.charAt(x), seq2.charAt(y)) + 2*gapCosts;
 						score[2] = M.get(x-1, y, z-1) + omega.getScore(	// 1_1
-								seq1.charAt(x), 
-								seq3.charAt(z)) + 2*gapCosts;
+								seq1.charAt(x), seq3.charAt(z)) + 2*gapCosts;
 						score[3] = M.get(x, y-1, z-1) + omega.getScore(	// _11
-								seq2.charAt(y), 
-								seq3.charAt(z)) + 2*gapCosts;
+								seq2.charAt(y), seq3.charAt(z)) + 2*gapCosts;
 						score[4] = M.get(x-1, y, z) + 2*gapCosts;		// 1__
 						score[5] = M.get(x, y-1, z) + 2*gapCosts;		// _1_
 						score[6] = M.get(x, y, z-1) + 2*gapCosts;		// __1
@@ -138,10 +149,10 @@ public class SumOfPairs extends BioinfAlgorithm {
 				+ omega.getScore( seq1.charAt(x), seq2.charAt(y)) + 2*gapCosts)
 			psbl[1] = 1;
 		if(M.get(x, y, z) == M.get(x-1, y, z-1) 
-				+ omega.getScore( seq1.charAt(x), seq2.charAt(z)) + 2*gapCosts)
+				+ omega.getScore( seq1.charAt(x), seq3.charAt(z)) + 2*gapCosts)
 			psbl[2] = 1;
 		if(M.get(x, y, z) == M.get(x, y-1, z-1) 
-				+ omega.getScore( seq1.charAt(y), seq2.charAt(z)) + 2*gapCosts)
+				+ omega.getScore( seq2.charAt(y), seq3.charAt(z)) + 2*gapCosts)
 			psbl[3] = 1;
 		if(M.get(x, y, z) == M.get(x-1, y, z) + 2*gapCosts)
 			psbl[4] = 1;
@@ -149,24 +160,6 @@ public class SumOfPairs extends BioinfAlgorithm {
 			psbl[5] = 1;
 		if(M.get(x, y, z) == M.get(x, y, z-1) + 2*gapCosts)
 			psbl[6] = 1;
-//
-//		int num_psbl = psbl[0]+psbl[1]+psbl[2]+psbl[3]+psbl[4]+psbl[5]+psbl[6];
-//		if(randomBackTrace && num_psbl > 1) {
-//			int random;
-//			if(num_psbl == 7) {
-//				psbl[0] = 0; psbl[1] = 0; psbl[2] = 0; psbl[3] = 0; 
-//				psbl[4] = 0; psbl[5] = 0; psbl[6] = 0;
-//				psbl[new Random().nextInt(7)] = 1;
-//			}
-//			if(num_psbl == 2) {
-//				random = new Random().nextInt(2);
-//				if(psbl[0] == 1) {
-//					if(psbl[1] == 1) { 
-//						psbl[0] = random; psbl[1] = 1-random;
-//					} else { psbl[0] = random; psbl[2] = 1-random; }
-//				} else { psbl[1] = random; psbl[2] = 1-random; }
-//			}
-//		}
 		
 		System.out.println(Arrays.toString(psbl));
 		
@@ -251,9 +244,9 @@ public class SumOfPairs extends BioinfAlgorithm {
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
 		//TODO Parse input for errors!!!
-		seq1 = "*"+(String) params.elementAt(0).data;
-		seq2 = "*"+(String) params.elementAt(1).data;
-		seq3 = "*"+(String) params.elementAt(2).data;
+		seq1 = (String) params.elementAt(0).data;
+		seq2 = (String) params.elementAt(1).data;
+		seq3 = (String) params.elementAt(2).data;
 		usePAM = (Boolean) params.elementAt(3).data;
 		randomBackTrace = (Boolean) params.elementAt(4).data;
 		gapCosts = (Double) params.elementAt(5).data;
@@ -267,7 +260,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 		System.out.println("\nScore: "+score());
 		System.out.println(M.toString());
 		
-		backtrack(seq1.length()-2, seq2.length()-2, seq3.length()-2, new Alignment(3));
+		backtrack(seq1.length()-1, seq2.length()-1, seq3.length()-1, new Alignment(3));
 		
 		// ### print alignments to return string ###
 		for(int k=0; k<algnmts.size(); k++) 
