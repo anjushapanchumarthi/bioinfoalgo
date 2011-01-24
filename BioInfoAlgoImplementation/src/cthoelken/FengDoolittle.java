@@ -18,7 +18,8 @@ public class FengDoolittle extends BioinfAlgorithm {
 	protected boolean usePAM;
 	protected double gapCosts;
 	protected Alignment alignment;
-	private Boolean useUPGMA;
+	protected boolean useUPGMA;
+	protected Cluster tree;
 
 	 /**
 	  * Constructor which generates an empty vector of parameters of the needed 
@@ -27,13 +28,15 @@ public class FengDoolittle extends BioinfAlgorithm {
 	public FengDoolittle() { 
 		
 		// create all needed parameters for the algorithm to work.
-		
-		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 1"
-				, "A first sequence of the amino acid alphabet with the length " +
-						"1-128 characters is required." 
-				, StringList.class
-				, "CLEMENS"));
+		super.parameters.add(new AlgorithmParameter(
+				"Sequences"
+				, "Enter Sequences in FASTA format." 
+				, StringList.class 
+				, new StringList("\n\n;Kommentar 1 \n>" +
+						"Sequence 1 [Die Schwarmm�ücke] \"Plutonium Maximum\"" +
+						"\n;Kommentar2\nABCDEF\n>" +
+						"Sequence 2\nabdefdab\nG*\n>Sequnce 3\n" +
+						"dfgabab\n>Sequence 4\nccccgabdegfef")));
 		super.parameters.add(new AlgorithmParameter(
 				"PAM / BLOSUM"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
@@ -83,23 +86,25 @@ public class FengDoolittle extends BioinfAlgorithm {
 		
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
-		//TODO Parse input for errors!!!
-		String sequenceString = (String) params.elementAt(0).data;
+		try{
+			sequences = PGMA.parseFasta((StringList) params.elementAt(0).data);
+		} catch(IllegalArgumentException e) {
+			return e.toString();
+		}
 		usePAM = (Boolean) params.elementAt(1).data;
 		useUPGMA = (Boolean) params.elementAt(2).data;
 		gapCosts = (Double) params.elementAt(3).data;
 		
-		retVal += "\n mhh.. I assume my default values are fine ! ;) \n";
+		tree = new PGMA().calculate(sequences, usePAM, !useUPGMA, gapCosts);
+		
+		tree.align(usePAM, gapCosts);
+		
+		retVal += "\n" + tree.toString();
+		retVal += "\n" + tree.generateAlignment(sequences).toString();
+		retVal += "\n Sum-of-Pairs Score: "  + SumOfPairs.score(tree.generateAlignment(sequences), usePAM, gapCosts);
 		
 		  // ##########  RUN THE PROGRAM  ###########
 
-		 // (JUST TO EXEMPLIFY SOME OUTPUT I REPORT THE INPUT PARAMETERS ...)
-		for (int i = 0; i < params.size(); i++) {
-			retVal	+= "\n Input : "
-					+ params.elementAt(i).name
-					+ " = "
-					+ params.elementAt(i).defVal.toString();
-		}
 		
 		  // returning the algorithm results
 		return retVal;
