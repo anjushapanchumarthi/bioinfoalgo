@@ -48,9 +48,9 @@ public class PGMA extends BioinfAlgorithm {
 				, new Boolean(true)));
 		super.parameters.add(new AlgorithmParameter(
 				"Gap costs"
-				, "An integer for the constant gap costs used for scoring."
-				, Integer.class 
-				, new Integer(-1)));
+				, "A decimal value for the constant gap costs used for scoring."
+				, Double.class 
+				, new Double(-1.0)));
 	}
 
 	@Override
@@ -70,52 +70,6 @@ public class PGMA extends BioinfAlgorithm {
 		return super.parameters;
 	}
 	
-	/** Parses an Alignment from a FASTA String with newlines
-	 * @param fasta Input string in FASTA format
-	 * @return Alignment with all sequences
-	 */
-	public static Alignment parseFasta(StringList fasta) {
-		String[] lines = fasta.toString().split("\n");
-		LinkedList<String> names = new LinkedList<String>();
-		LinkedList<String> sequences = new LinkedList<String>();
-		String temp = "";
-
-		for(int i = 0; i < lines.length; i++) {
-			if(lines[i].length() > 0) {
-				if(lines[i].charAt(0) == ';') {	
-				} else if(lines[i].charAt(0) == '>' && names.size() == sequences.size()) {
-					names.add(lines[i].substring(1));
-				} else if(names.size()-1 == sequences.size()) {
-					temp += lines[i];
-					if(lines[i].charAt(lines[i].length()-1) == '*') {
-						sequences.add(temp.substring(0, temp.length()-1));
-						temp = "";
-					} else if(i+1 == lines.length) {
-						sequences.add(temp);
-						temp = "";
-					} else if(lines[i+1].charAt(0) == '>' || lines[i+1].length() == 0) {
-						sequences.add(temp);
-						temp = "";
-					}
-				} else throw new IllegalArgumentException("Line "+i
-						+" is not a valid formated according to FASTA!");
-			}
-		}
-		
-		Alignment algn = new Alignment(names.size());
-		for(int i = 0; i < names.size(); i++) {
-			algn.setName(i, names.get(i));
-			for(int j = 0; j < sequences.get(i).length(); j++)
-				if(new SubstitutionMatrix().getScore(sequences.get(i).charAt(j), sequences.get(i).charAt(j)) < 0)
-					throw new IllegalArgumentException("\""
-							+ sequences.get(i).charAt(j)
-							+ "\" is not a valid amino acid in sequence "+i
-							+ " at position "+(j+1)+"!");
-			algn.setSeq(i, sequences.get(i));
-		}
-
-		return algn;
-	}
 	
 	/** Calculates a tree form a given alignment
 	 * @param sequences Input alignment with all sequences
@@ -182,13 +136,17 @@ public class PGMA extends BioinfAlgorithm {
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
 		try{
-			sequences = PGMA.parseFasta((StringList) params.elementAt(0).data);
+			sequences = Util.parseFasta((StringList) params.elementAt(0).data);
 		} catch(IllegalArgumentException e) {
 			return e.toString();
 		}
 		weighted = (Boolean) params.elementAt(1).data;
 		usePAM = (Boolean) params.elementAt(2).data;
-		gapCosts = (Integer) params.elementAt(3).data;
+		try{
+			if(params.elementAt(3).data.getClass() == Double.class)
+				gapCosts = (Double) params.elementAt(3).data;
+			else return "Gap costs are not a valid decimal value!";
+		} catch(Exception e) {return "Gap costs are not a valid decimal value!";}
 		
 		  // ##########  RUN THE PROGRAM  ###########
 
