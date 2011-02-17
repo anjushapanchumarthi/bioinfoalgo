@@ -2,6 +2,8 @@ package cthoelken;
 
 import gui.AlgorithmParameter;
 import gui.BioinfAlgorithm;
+import gui.StringList;
+
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -23,6 +25,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 	protected CostMatrix M;
 	protected LinkedList<Alignment> algnmts = new LinkedList<Alignment>();
 	protected String seq3;
+	private Alignment sequences;
 
 	 /**
 	  * Constructor which generates an empty vector of parameters of the needed 
@@ -33,23 +36,14 @@ public class SumOfPairs extends BioinfAlgorithm {
 		// create all needed parameters for the algorithm to work.
 		
 		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 1"
-				, "A first sequence of the amino acid alphabet with the length " +
-						"1-128 characters is required." 
-				, String.class
-				, "CLEMENS"));
-		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 2"
-				, "A first sequence of the amino acid alphabet with the length " +
-						"1-128 characters is required." 
-				, String.class
-				, "STEFFEN"));
-		super.parameters.add(new AlgorithmParameter(	
-				"Sequence 3"
-				, "A first sequence of the amino acid alphabet with the length " +
-						"1-128 characters is required." 
-				, String.class
-				, "STEFFAN"));
+				"FASTA Input"
+				, "Type or paste three sequences in FASTA format into the field." 
+				, StringList.class
+				, new StringList("\n\n;Kommentar 1 \n>" +
+						"Sequence 1 [Die Schwarmm�ücke] \"Plutonium Maximum\"" +
+						"\n;Kommentar2\nABCDEF\n>" +
+						"Sequence 2\nABGEFGGGGGGGGGGGGGG\nG*\n>Sequnce 3\n" +
+						"ABGDEF")));
 		super.parameters.add(new AlgorithmParameter(
 				"PAM / BLOSUM"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
@@ -129,7 +123,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 						score[5] = M.get(x, y-1, z) + 2*gapCosts;		// _1_
 						score[6] = M.get(x, y, z-1) + 2*gapCosts;		// __1
 
-						M.set(x, y, z, new Double(NeedlemanWunsch.maxValue(score[0], score[1], score[2], score[3], score[4], score[5], score[6])));
+						M.set(x, y, z, new Double(Util.maxValue(score[0], score[1], score[2], score[3], score[4], score[5], score[6])));
 					}
 				}
 			}
@@ -252,12 +246,23 @@ public class SumOfPairs extends BioinfAlgorithm {
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
 		//TODO Parse input for errors!!!
-		seq1 = (String) params.elementAt(0).data;
-		seq2 = (String) params.elementAt(1).data;
-		seq3 = (String) params.elementAt(2).data;
-		usePAM = (Boolean) params.elementAt(3).data;
-		randomBackTrace = (Boolean) params.elementAt(4).data;
-		gapCosts = (Double) params.elementAt(5).data;
+		try {
+			sequences = Util.parseFasta((StringList) params.elementAt(0).data);
+		} catch(IllegalArgumentException e) { return ""+e; }
+		if(sequences.size() != 3)
+			return "Please enter 3 valid Sequences in the FASTA format above!";
+		seq1 = sequences.getSeq(0);
+		seq2 = sequences.getSeq(1);
+		seq3 = sequences.getSeq(2);
+		
+		usePAM = (Boolean) params.elementAt(1).data;
+		randomBackTrace = (Boolean) params.elementAt(2).data;
+		
+		try{
+			if(params.elementAt(3).type == Double.class)
+				gapCosts = (Double) params.elementAt(3).data;
+			else return "Gap costs are not a valid decimal value!";
+		} catch(Exception e) {return "Gap costs are not a valid decimal value!";}
 		
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		
