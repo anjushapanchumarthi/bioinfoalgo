@@ -111,32 +111,6 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return algnmts.getFirst();
 	}
 	
-	/** Returns the maximum value of the double parameters
-	 * @param value Input double array
-	 * @return maximal input parameter
-	 */
-	public static double maxValue(double... value) {
-		double max = Double.NEGATIVE_INFINITY;
-		for(int i = 0; i < value.length; i++)
-			if(max < value[i]) max = value[i];
-		return max;
-	}
-	
-	/** Returns the index of the maximal double in the parameters
-	 * @param value Input double array
-	 * @return Index of the maximal input parameter
-	 */
-	public static int maxIndex(double... value) {
-		double max = 0;
-		int index = 0;
-		for(int i = 0; i < value.length; i++)
-			if(max < value[i]) {
-				max = value[i];
-				index = i;
-			}
-		return index;
-	}
-	
 	/** Calculates the costmatrix
 	 * @return Returns the score of the alignment
 	 */
@@ -148,7 +122,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		for(int i=0; i<seq1.length(); i++) {
 			for(int j=0; j<seq2.length(); j++) {
 				if(!(i==0 && j==0))					
-					M.set(i, j, maxValue(M.get(i, j-1) + gapCosts,
+					M.set(i, j, Util.maxValue(M.get(i, j-1) + gapCosts,
 							M.get(i-1, j) + gapCosts, M.get(i-1, j-1)
 							+ omega.getScore(seq1.charAt(i), seq2.charAt(j))));
 			}
@@ -156,45 +130,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		return M.score();
 	}
 	
-	/**
-	 * Main method of the algorithm.
-	 * 
-	 * @param params The filled out parameters are entered externally.
-	 * 
-	 * @return Output string containing the used parameters, the results and errors.
-	 */
-	@Override
-	public String run(Vector<AlgorithmParameter> params) {
-		
-		String retVal = new String("");
-		
-		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
-		
-		//TODO Parse input for errors!!!
-		seq1 = (String) params.elementAt(0).data;
-		seq2 = (String) params.elementAt(1).data;
-		usePAM = (Boolean) params.elementAt(2).data;
-		randomBackTrace = (Boolean) params.elementAt(3).data;
-		gapCosts = (Double) params.elementAt(4).data;
-		
-		omega = new SubstitutionMatrix(usePAM, gapCosts);
-		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
-		
-		  // ##########  RUN THE PROGRAM  ###########
-		
-		retVal += "\n Maximal Score: " + calculate();
-		
-		
-		backtrack(seq1.length()-1, seq2.length()-1, new Alignment(2));
-		
-		// ### print alignments to return string ###
-		for(int k=0; k<algnmts.size(); k++) 
-			retVal += "\n########### Alignment "+k+":\n"+algnmts.get(k).toString();
-		
-		  // returning the algorithm results
-		return retVal;
-	}
-	
+
 	/** Backtracks the cost matrix for feasable paths
 	 * @param x x-offset
 	 * @param y y-offset
@@ -258,6 +194,53 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		}
 	}
 	
+	/**
+	 * Main method of the algorithm.
+	 * 
+	 * @param params The filled out parameters are entered externally.
+	 * 
+	 * @return Output string containing the used parameters, the results and errors.
+	 */
+	@Override
+	public String run(Vector<AlgorithmParameter> params) {
+		
+		String retVal = new String("");
+		
+		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
+		
+		//TODO Parse input for errors!!!
+		seq1 = (String) params.elementAt(0).data;
+		if(!Util.isValidSequence(seq1)) return "Sequence 1 is not valid!";
+		
+		seq2 = (String) params.elementAt(1).data;
+		if(!Util.isValidSequence(seq2)) return "Sequence 2 is not valid!";
+		
+		usePAM = (Boolean) params.elementAt(2).data;
+		randomBackTrace = (Boolean) params.elementAt(3).data;
+		
+		try{
+			if(params.elementAt(4).data.getClass() == Double.class)
+				gapCosts = (Double) params.elementAt(4).data;
+			else return "Gap costs are not a valid decimal value!";
+		} catch(Exception e) {return "Gap costs are not a valid decimal value!";}
+		
+		omega = new SubstitutionMatrix(usePAM, gapCosts);
+		M = new CostMatrix(seq1.length()+1, seq2.length()+1);
+		
+		  // ##########  RUN THE PROGRAM  ###########
+		
+		retVal += "\n Maximal Score: " + calculate();
+		
+		
+		backtrack(seq1.length()-1, seq2.length()-1, new Alignment(2));
+		
+		// ### print alignments to return string ###
+		for(int k=0; k<algnmts.size(); k++) 
+			retVal += "\n########### Alignment "+k+":\n"+algnmts.get(k).toString();
+		
+		  // returning the algorithm results
+		return retVal;
+	}	
 
 	/**
 	 * Creates an instance of this class and calls the run method using the
