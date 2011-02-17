@@ -87,14 +87,20 @@ public class FengDoolittle extends BioinfAlgorithm {
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
 		try{
-			sequences = PGMA.parseFasta((StringList) params.elementAt(0).data);
+			sequences = Util.parseFasta((StringList) params.elementAt(0).data);
 		} catch(IllegalArgumentException e) {
 			return e.toString();
-		}
+		} catch(Exception e) { return "The FASTA data is not valid!"; }
 		usePAM = (Boolean) params.elementAt(1).data;
 		useUPGMA = (Boolean) params.elementAt(2).data;
-		gapCosts = (Double) params.elementAt(3).data;
+		try{
+			if(params.elementAt(3).data.getClass() == Double.class)
+				gapCosts = (Double) params.elementAt(3).data;
+			else return "Gap costs are not a valid decimal value!";
+		} catch(Exception e) {return "Gap costs are not a valid decimal value!";}
 		
+		  // ##########  RUN THE PROGRAM  ###########
+
 		tree = new PGMA().calculate(sequences, usePAM, !useUPGMA, gapCosts);
 		
 		tree.align(usePAM, gapCosts);
@@ -102,9 +108,6 @@ public class FengDoolittle extends BioinfAlgorithm {
 		retVal += "\n" + tree.toString();
 		retVal += "\n" + tree.generateAlignment(sequences).toString();
 		retVal += "\n Sum-of-Pairs Score: "  + SumOfPairs.score(tree.generateAlignment(sequences), usePAM, gapCosts);
-		
-		  // ##########  RUN THE PROGRAM  ###########
-
 		
 		  // returning the algorithm results
 		return retVal;
