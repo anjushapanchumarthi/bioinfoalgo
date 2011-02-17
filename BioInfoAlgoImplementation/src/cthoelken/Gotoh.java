@@ -62,15 +62,15 @@ public class Gotoh extends NeedlemanWunsch {
 				if(i != 0 && j == 0) M.set(i, 0, M.get(i-1, 0) + gapCosts + gapCostsExt);
 				if(j != 0 && i == 0) M.set(0, j, M.get(0, j-1) + gapCosts + gapCostsExt);
 				//if (i != 0 || j != 0)
-					H.set(i, j, maxValue(M.get(i-1, j)
+					H.set(i, j, Util.maxValue(M.get(i-1, j)
 							+ gapCosts + gapCostsExt, 
 							H.get(i-1, j) + gapCostsExt));
 				//if (j != 0 || i != 0)
-					V.set(i, j, maxValue(M.get(i, j-1)
+					V.set(i, j, Util.maxValue(M.get(i, j-1)
 							+ gapCosts + gapCostsExt,
 							V.get(i, j-1) + gapCostsExt));
 				if (!(i == 0 && j == 0))
-					M.set(i, j, maxValue(M.get(i-1, j-1)
+					M.set(i, j, Util.maxValue(M.get(i-1, j-1)
 							+ omega.getScore(seq1.charAt(i), seq2.charAt(j)),
 							H.get(i, j), V.get(i, j)));
 									
