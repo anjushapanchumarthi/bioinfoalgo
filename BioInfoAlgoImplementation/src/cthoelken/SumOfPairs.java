@@ -3,8 +3,6 @@ package cthoelken;
 import gui.AlgorithmParameter;
 import gui.BioinfAlgorithm;
 import gui.StringList;
-
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -249,7 +247,6 @@ public class SumOfPairs extends BioinfAlgorithm {
 		
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
 		
-		//TODO Parse input for errors!!!
 		try {
 			sequences = Util.parseFasta((StringList) params.elementAt(0).data);
 		} catch(IllegalArgumentException e) { return ""+e; }

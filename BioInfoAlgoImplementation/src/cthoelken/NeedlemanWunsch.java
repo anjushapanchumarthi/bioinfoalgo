@@ -2,9 +2,7 @@ package cthoelken;
 
 import gui.AlgorithmParameter;
 import gui.BioinfAlgorithm;
-
 import java.util.LinkedList;
-import java.util.Random;
 import java.util.Vector;
 
  /**
@@ -210,8 +208,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		String retVal = new String("");
 		
 		  // ##########  PARSE INPUT PARAMETERS FOR ERRORS  ###########
-		
-		//TODO Parse input for errors!!!
+
 		seq1 = (String) params.elementAt(0).data;
 		if(!Util.isValidSequence(seq1)) return "Sequence 1 is not valid!";
 		

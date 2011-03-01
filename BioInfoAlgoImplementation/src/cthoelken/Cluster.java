@@ -50,31 +50,32 @@ public class Cluster {
 	 */
 	double distance(Cluster cluster, boolean weighted, boolean usePAM, double gapCosts) {
 		NeedlemanWunsch nw = new NeedlemanWunsch();
-		if(isLeaf() && cluster.isLeaf())
+		if(isLeaf() && cluster.isLeaf())	// both nodes are sequences
 			return -nw.getScore(s, cluster.s, usePAM, gapCosts);
-		if(isLeaf()) {
+		if(isLeaf()) {		// this is a sequence but the other one isn't -> recursion
 			return (cluster.left.distance(this, weighted, usePAM, gapCosts)+cluster.right.distance(this, weighted, usePAM, gapCosts));
 		}
-		if(!weighted)
+		if(!weighted)		// both are clusters -> recursion according to mode
 			return (cluster.distance(left, weighted, usePAM, gapCosts)+cluster.distance(right, weighted, usePAM, gapCosts))/2;
 		return (cluster.distance(left, weighted, usePAM, gapCosts)+cluster.distance(right, weighted, usePAM, gapCosts))/size();
 	}
 	
-	/** Recursively aligns the nodes of the cluster
+	/** Recursively aligns the nodes of the cluster according to their hierarchy
 	 * @param usePAM Use PAM for substitution
 	 * @param gapCosts Gap costs for the calculation
 	 */
 	void align(boolean usePAM, double gapCosts) {
 		if(isLeaf()) return;
 
-		left.align(usePAM, gapCosts);
+		left.align(usePAM, gapCosts);		// RECURSION
 		right.align(usePAM, gapCosts);
+		
 		double dist;
 		double min = Double.POSITIVE_INFINITY;
 		int xMin = 0; int yMin = 0;
 		for(int x = 0; x < left.size(); x++) {
 			for(int y = 0; y < right.size(); y++) {
-				dist = left.getLeaves().get(x).distance(right.getLeaves().get(y), usePAM, usePAM, gapCosts);
+				dist = left.getLeaves().get(x).distance(right.getLeaves().get(y), weighted, usePAM, gapCosts);
 				if(min > dist) {
 					min = dist; xMin = x; yMin = y;
 				}

@@ -172,13 +172,25 @@ public class Gotoh extends NeedlemanWunsch {
 
 		// ########## PARSE INPUT PARAMETERS FOR ERRORS ###########
 
-		// TODO Parse input for errors!!!
 		seq1 = (String) params.elementAt(0).data;
+		if(!Util.isValidSequence(seq1)) return "Sequence 1 is not valid!";
+		
 		seq2 = (String) params.elementAt(1).data;
+		if(!Util.isValidSequence(seq2)) return "Sequence 2 is not valid!";
+		
 		usePAM = (Boolean) params.elementAt(2).data;
 		randomBackTrace = (Boolean) params.elementAt(3).data;
-		gapCosts = (Double) params.elementAt(4).data;
-		gapCostsExt = (Double) params.elementAt(5).data;
+		
+		try{
+			if(params.elementAt(4).data.getClass() == Double.class)
+				gapCosts = (Double) params.elementAt(4).data;
+			else return "Gap costs are not a valid decimal value!";
+		} catch(Exception e) {return "Gap costs are not a valid decimal value!";}
+		try{
+			if(params.elementAt(5).data.getClass() == Double.class)
+				gapCostsExt = (Double) params.elementAt(5).data;
+			else return "Extended gap costs are not a valid decimal value!";
+		} catch(Exception e) {return "Extended gap costs are not a valid decimal value!";}
 
 		omega = new SubstitutionMatrix(usePAM, gapCosts);
 		M = new CostMatrix(seq1.length() + 1, seq2.length() + 1);
