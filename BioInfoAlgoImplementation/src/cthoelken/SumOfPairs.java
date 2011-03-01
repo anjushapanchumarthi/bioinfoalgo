@@ -4,6 +4,7 @@ import gui.AlgorithmParameter;
 import gui.BioinfAlgorithm;
 import gui.StringList;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -39,22 +40,26 @@ public class SumOfPairs extends BioinfAlgorithm {
 				"FASTA Input"
 				, "Type or paste three sequences in FASTA format into the field." 
 				, StringList.class
-				, new StringList("\n\n;Kommentar 1 \n>" +
-						"Sequence 1 [Die Schwarmm�ücke] \"Plutonium Maximum\"" +
-						"\n;Kommentar2\nABCDEF\n>" +
-						"Sequence 2\nABGEFGGGGGGGGGGGGGG\nG*\n>Sequnce 3\n" +
-						"ABGDEF")));
+				, new StringList(">Sequenz 1;Kommentarzeile A" +
+						"\nMTEITAAMVKELRESTGAGMMDCKNALSETNGDFDKAVQLLREKGLGKDT" +
+						"\nLVSVKVSDDFTIAAMRPSYLSYEDLDMT" +
+						"\n>Sequenz 2\n;Kommentarzeile B\n;Kommentarzeile C" +
+						"\nSATVSEINSETDFVAKNDQFIALTKDTTAHIQSNSLQSVEELHSSTINGV" +
+						"\nATIGENLVVRRFATLKAGANGV" +
+						"\n>Sequenz 3\n;Kommentarzeile B\n;Kommentarzeile C" +
+						"\nGATVSEINSETDFVAKNDQFIALTKDTTAHIQSNSLQSVEELHSSTINDT" +
+						"\nATIGENLVVRRFA")));
 		super.parameters.add(new AlgorithmParameter(
-				"PAM / BLOSUM"
+				"use PAM (BLOSUM otherwise)"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
 				, Boolean.class 
 				, new Boolean(true)));
 		super.parameters.add(new AlgorithmParameter(
-				"Random / Exhaustive Backtracking"
+				"single random alignment (all alignments otherwise)"
 				, "Choose YES to output only one random optimal alignment or NO" +
 						"  to output all optimal alignments at once." 
 				, Boolean.class 
-				, new Boolean(false)));
+				, new Boolean(true)));
 		super.parameters.add(new AlgorithmParameter(
 				"Gap costs"
 				, "A double for the constant gap costs used for scoring."
@@ -146,29 +151,28 @@ public class SumOfPairs extends BioinfAlgorithm {
 		}
 		
 		int[] psbl = {0, 0, 0, 0, 0, 0, 0};
-		if(M.get(x, y, z) == M.get(x-1, y-1, z-1) 
+		if(M.get(x, y, z) == M.get(x-1, y-1, z-1) // perfect match
 				+ omega.getScore(seq1.charAt(x), seq2.charAt(y), seq3.charAt(z)))
 			psbl[0] = 1;
-		if(M.get(x, y, z) == M.get(x-1, y-1, z) 
+		if(M.get(x, y, z) == M.get(x-1, y-1, z)   // match in X and Y
 				+ omega.getScore( seq1.charAt(x), seq2.charAt(y)) + 2*gapCosts)
 			psbl[1] = 1;
-		if(M.get(x, y, z) == M.get(x-1, y, z-1) 
+		if(M.get(x, y, z) == M.get(x-1, y, z-1)   // match in X and Z
 				+ omega.getScore( seq1.charAt(x), seq3.charAt(z)) + 2*gapCosts)
 			psbl[2] = 1;
-		if(M.get(x, y, z) == M.get(x, y-1, z-1) 
+		if(M.get(x, y, z) == M.get(x, y-1, z-1)   // match in Y and Z
 				+ omega.getScore( seq2.charAt(y), seq3.charAt(z)) + 2*gapCosts)
 			psbl[3] = 1;
-		if(M.get(x, y, z) == M.get(x-1, y, z) + 2*gapCosts)
-			psbl[4] = 1;
-		if(M.get(x, y, z) == M.get(x, y-1, z) + 2*gapCosts)
-			psbl[5] = 1;
-		if(M.get(x, y, z) == M.get(x, y, z-1) + 2*gapCosts)
-			psbl[6] = 1;
+		if(M.get(x, y, z) == M.get(x-1, y, z) + 2*gapCosts) psbl[4] = 1; // insert in Y and Z
+		if(M.get(x, y, z) == M.get(x, y-1, z) + 2*gapCosts) psbl[5] = 1; // insert in X and Z
+		if(M.get(x, y, z) == M.get(x, y, z-1) + 2*gapCosts) psbl[6] = 1; // insert in Y and Z
 		
 		char[] column = new char[3];
 		char[] match = new char[2];
 		
 		match[0] = ' '; match[1] = '_';
+		
+		if(randomBackTrace == true) psbl = Util.chooseRandom(psbl); //Random BT
 		
 		if(psbl[0] == 1) {
 			match[0] = (seq1.toUpperCase().charAt(x) == seq2.toUpperCase().charAt(y)) ? '|' : '*';
@@ -274,7 +278,7 @@ public class SumOfPairs extends BioinfAlgorithm {
 		
 		// ### print alignments to return string ###
 		for(int k=0; k<algnmts.size(); k++) 
-			retVal += "\n########### Alignment "+k+":\n"+algnmts.get(k).toString();
+			retVal += "\n########### Alignment "+(k+1)+":\n"+algnmts.get(k).toString();
 				
 		  // returning the algorithm results
 		return retVal;

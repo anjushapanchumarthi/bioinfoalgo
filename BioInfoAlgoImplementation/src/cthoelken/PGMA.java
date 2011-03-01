@@ -35,14 +35,14 @@ public class PGMA extends BioinfAlgorithm {
 						"Sequence 1 [Die Schwarmm�ücke] \"Plutonium Maximum\"" +
 						"\n;Kommentar2\nABCDEF\n>" +
 						"Sequence 2\nABGEFGGGGGGGGGGGGGG\nG*\n>Sequnce 3\n" +
-						"ABGDEF\n>Sequence 4\nABDEFGGGGGGG")));
+						"ABGDEF\n>Sequence 4\nGGGAGEFSSSSSSS")));
 		super.parameters.add(new AlgorithmParameter(
-				"Weighted / Unweighted"
+				"use Weighted (otherwise Unweighted) pairing"
 				, "Choose YES to use WEIGHTED or NO to use UNWEIGHTED pairing." 
 				, Boolean.class 
 				, new Boolean(true)));
 		super.parameters.add(new AlgorithmParameter(
-				"PAM / BLOSUM"
+				"use PAM (BLOSUM otherwise)"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
 				, Boolean.class 
 				, new Boolean(true)));

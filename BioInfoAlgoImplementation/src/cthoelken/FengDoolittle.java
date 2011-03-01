@@ -38,12 +38,12 @@ public class FengDoolittle extends BioinfAlgorithm {
 						"Sequence 2\nabdefdab\nG*\n>Sequnce 3\n" +
 						"dfgabab\n>Sequence 4\nccccgabdegfef")));
 		super.parameters.add(new AlgorithmParameter(
-				"PAM / BLOSUM"
+				"use PAM (BLOSUM otherwise)"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
 				, Boolean.class 
 				, new Boolean(true)));
 		super.parameters.add(new AlgorithmParameter(
-				"UPGMA / WPGMA"
+				"use WPGMA (otherwise UPGMA) pairing"
 				, "Choose YES to use unweighted or NO to use weighted for pairing." 
 				, Boolean.class 
 				, new Boolean(true)));

@@ -2,7 +2,9 @@ package cthoelken;
 
 import gui.StringList;
 
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Random;
 
 /** Utility class for static methods used by multiple algorithms for intermediate
  * parsing and computations
@@ -82,9 +84,28 @@ public class Util {
      * @return TRUE if the string only consists of valid amino acids.
      */
     public static boolean isValidSequence(String s) {
+    	if(s.length() < 1) return false;
     	for(int i = 0; i < s.length(); i++)
     		if (!isAmino(s.charAt(i))) return false;
     	return true;
+    }
+    
+    /** From an array of 0's and 1's returns an array with all 0's and only one 1
+     * 
+     * @param array An array of the form [0,0,1,1,1,0,1,0,...]
+     * @return An array with only one 1 [0,0,0,1,0,0,0,...]
+     */
+    public static int[] chooseRandom(int[] array) {
+    	int total = 0;
+    	int[] pos = new int[array.length];
+    	for(int i = 0; i<array.length; i++) {
+    		if(array[i] == 1) {
+    			pos[total++] = i;
+    			array[i] = 0;
+    		}
+    	}
+    	array[pos[new Random().nextInt(total)]] = 1;
+    	return array;
     }
 
     

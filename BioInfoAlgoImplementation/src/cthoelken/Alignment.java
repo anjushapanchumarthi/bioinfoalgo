@@ -176,14 +176,27 @@ public class Alignment {
 	}
 	
 	/* (non-Javadoc)
+	 * Pretty prints the Alignment in a 80 chars limited output with symols for
+	 * matches and mismatches
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
+		for(int i = 1; i < sequences.length; i++)
+			if(sequences[i].length() != sequences[0].length())
+				return "Sequences in the alignment are not propperly aligned!\n";
 		String retVal = "";
-		retVal += "Seq1: " + sequences[0] + "\n";
-		for(int i=1; i<sequences.length; i++)
-			retVal += "      " + matches[i-1] + "\n" + "Seq" + (i+1) +
-					": "+ sequences[i] + "\n";
+		String prefix = "0";
+		int limit = 0;
+		for(int times = 0; times <= sequences[0].length()/76; times++) {
+			limit = (sequences[0].length() > times*76+75) ? (times*76+75) : (sequences[0].length()%76 + times*76);
+			retVal += "01: " + sequences[0].substring(times*76,limit) + "\n";
+			for(int i=1; i<sequences.length; i++) {
+				prefix = (i > 9) ? "" : "0";
+				retVal += "    " + matches[i-1].substring(times*76,limit) + "\n" + prefix + (i+1) +
+					": "+ sequences[i].substring(times*76,limit) + "\n";
+			}
+			retVal += "\n";
+		}
 		return retVal;
 	}
 

@@ -38,20 +38,22 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				, "A first sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "FCDEG"));
+				, "MTEITAAMVKELRESTGAGMMDCKNALSETNGDFDKAVQLLREKGLGKAAKKADRLAA" +
+						"EGLVSVKVSDDFTI"));
 		super.parameters.add(new AlgorithmParameter(	
 				"Sequence 2"
 				, "A second sequence of the amino acid alphabet with the length " +
 						"1-128 characters is required." 
 				, String.class
-				, "DCDDEG"));
+				, "SATVSEINSETDFVAKNDQFIALTKDTTAHIQSNSLQSVEELHSSTINGVKFEEYLK" +
+						"SQIATIGENLVVR"));
 		super.parameters.add(new AlgorithmParameter(
-				"PAM / BLOSUM"
+				"use PAM (BLOSUM otherwise)"
 				, "Choose YES to use PAM or NO to use BLOSUM for scoring." 
 				, Boolean.class 
 				, new Boolean(true)));
 		super.parameters.add(new AlgorithmParameter(
-				"Random / Exhaustive Backtracking"
+				"single random alignment (all alignments otherwise)"
 				, "Choose YES to output only one random optimal alignment or NO" +
 						"  to output all optimal alignments at once." 
 				, Boolean.class 
@@ -60,7 +62,7 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 				"Gap costs"
 				, "A double for the constant gap costs used for scoring."
 				, Double.class 
-				, new Double(-4.0)));
+				, new Double(-1.0)));
 
 	}
 
@@ -160,22 +162,23 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		if(M.get(x, y) == M.get(x-1, y-1) + omega.getScore(seq1.charAt(x), seq2.charAt(y)))
 			psbl[2] = 1;
 		
-		int num_psbl = psbl[0]+psbl[1]+psbl[2];
-		if(randomBackTrace && num_psbl > 1) {
-			int random;
-			if(num_psbl == 3) {
-				random = new Random().nextInt(3);
-				psbl[0] = 0; psbl[1] = 0; psbl[2] = 0; psbl[random] = 1;
-			}
-			if(num_psbl == 2) {
-				random = new Random().nextInt(2);
-				if(psbl[0] == 1) {
-					if(psbl[1] == 1) { 
-						psbl[0] = random; psbl[1] = 1-random;
-					} else { psbl[0] = random; psbl[2] = 1-random; }
-				} else { psbl[1] = random; psbl[2] = 1-random; }
-			}
-		}
+		//int num_psbl = psbl[0]+psbl[1]+psbl[2];
+		if(randomBackTrace == true) psbl = Util.chooseRandom(psbl);
+//		if(randomBackTrace && num_psbl > 1) {
+//			int random;
+//			if(num_psbl == 3) {
+//				random = new Random().nextInt(3);
+//				psbl[0] = 0; psbl[1] = 0; psbl[2] = 0; psbl[random] = 1;
+//			}
+//			if(num_psbl == 2) {
+//				random = new Random().nextInt(2);
+//				if(psbl[0] == 1) {
+//					if(psbl[1] == 1) { 
+//						psbl[0] = random; psbl[1] = 1-random;
+//					} else { psbl[0] = random; psbl[2] = 1-random; }
+//				} else { psbl[1] = random; psbl[2] = 1-random; }
+//			}
+//		}
 		
 		match[0] = ' ';
 		
@@ -230,7 +233,6 @@ public class NeedlemanWunsch extends BioinfAlgorithm {
 		  // ##########  RUN THE PROGRAM  ###########
 		
 		retVal += "\n Maximal Score: " + calculate();
-		
 		
 		backtrack(seq1.length()-1, seq2.length()-1, new Alignment(2));
 		
